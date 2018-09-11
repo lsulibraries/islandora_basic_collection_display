@@ -27,33 +27,9 @@ function islandora_custom_collection_grid($object) {
   return $output;
 }
 
-function islandora_basic_collection_display_element_info() {
-  $types['grid_cell'] = array(
-    '#type' => 'grid_cell',
-    '#theme' => 'grid_cell',
-  );
-  return $types;
-}
-
 function stringify_classes_array($classes_array) {
   $string = implode(' ', $classes_array);
   return $string;
-}
-
-function theme_grid_cell($vars) {
-  $cell = $vars['grid_cell'];
-  $classes_string = $cell['classes'];
-  $thumb_link = $cell['thumb'];
-  $title_link = $cell['title'];
-  $output = "<dl class='islandora-basic-collection-object $classes_string'><dt>$thumb_link</dt><dd>$title_link</dd></dl>";
-  return $output;
-}
-
-function islandora_basic_collection_display_theme() {
-  $theme['grid_cell'] = array(
-      'render element' => 'grid_cell',
-  );
-  return $theme;
 }
 
 function islandora_basic_collection_display_preprocess_islandora_basic_collection_grid(&$variables) {
