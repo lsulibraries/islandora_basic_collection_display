@@ -8,50 +8,46 @@ function islandora_basic_collection_display_element_info() {
   return $types;
 }
 
-function stringify_classes_array($classes_array){
+function stringify_classes_array($classes_array) {
   $string = implode(' ', $classes_array);
   return $string;
 }
 
-
 function theme_grid_cell($vars) {
-    $cell = $vars['grid_cell'];
-    $classes_string = $cell['classes'];
-    $thumb_link = $cell['thumb'];
-    $title_link = $cell['title'];
-    $output = "<dl class='islandora-basic-collection-object $classes_string'><dt>$thumb_link</dt><dd>$title_link</dd></dl>";
-    return $output;
+  $cell = $vars['grid_cell'];
+  $classes_string = $cell['classes'];
+  $thumb_link = $cell['thumb'];
+  $title_link = $cell['title'];
+  $output = "<dl class='islandora-basic-collection-object $classes_string'><dt>$thumb_link</dt><dd>$title_link</dd></dl>";
+  return $output;
 }
 
 function islandora_basic_collection_display_theme() {
-    $theme['grid_cell'] = array(
-        'render element' => 'grid_cell',
-    );
-    return $theme;
+  $theme['grid_cell'] = array(
+      'render element' => 'grid_cell',
+  );
+  return $theme;
 }
 
-function islandora_basic_collection_display_preprocess_islandora_basic_collection_grid(&$variables){
-  foreach($variables['collection_results'] as $result){
-
-  // add cmodels
-  $pid = $result['object']['value'];
-  $object = islandora_object_load($pid);
-  $models = $object->models;
-  $key = array_search('fedora-system:FedoraObject-3.0', $models);
-  unset($models[$key]);
-  $original_class = $variables['associated_objects_array'][$pid]['class'];
-  $models[] = $original_class;
-  $variables['associated_objects_array'][$pid]['class'] = $models;
-}
+function islandora_basic_collection_display_preprocess_islandora_basic_collection_grid(&$variables) {
+  foreach ($variables['collection_results'] as $result) {
+    // add cmodels
+    $pid = $result['object']['value'];
+    $object = islandora_object_load($pid);
+    $models = $object->models;
+    $key = array_search('fedora-system:FedoraObject-3.0', $models);
+    unset($models[$key]);
+    $original_class = $variables['associated_objects_array'][$pid]['class'];
+    $models[] = $original_class;
+    $variables['associated_objects_array'][$pid]['class'] = $models;
+  }
   //replace grid
   $grid_group = array();
   foreach ($variables['associated_objects_array'] as $object) {
-    //replace grid
     $thumb_link = $object['thumb_link'];
     $title_link = filter_xss($object['title_link']);
     $classes_to_add = array();
     $str_or_array = gettype($object['class']) == 'string' ? TRUE : FALSE ;
-
     if (!$str_or_array) {
       foreach ($object['class'] as $class){
         $classes_to_add[] = $class;
