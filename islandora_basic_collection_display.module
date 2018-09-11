@@ -1,5 +1,32 @@
 <?php
 
+function islandora_custom_collection_grid($object) {
+  $classes_to_add = array();
+  $str_or_array = gettype($object['class']) == 'string' ? TRUE : FALSE ;
+  if (!$str_or_array) {
+  foreach ($object['class'] as $class){
+      $classes_to_add[] = $class;
+    }
+  }
+  else{
+    $classes_to_add[] = $object['class'];
+  }
+    $classes_string =  stringify_classes_array($classes_to_add);
+    $thumb_link = $object['thumb_link'];
+    $title_link = filter_xss($object['title_link']);
+    $output = array(
+      'grid' => array(
+        '#type' => 'markup',
+        '#markup' =>
+        "<dl class='islandora-basic-collection-object $classes_string>
+          <dt class='islandora-basic-collection-thumb'> $thumb_link </dt>
+          <dd class='islandora-basic-collection-caption'> $title_link </dd>
+        </dl>",
+    ),
+  );
+  return $output;
+}
+
 function islandora_basic_collection_display_element_info() {
   $types['grid_cell'] = array(
     '#type' => 'grid_cell',
@@ -46,26 +73,12 @@ function islandora_basic_collection_display_preprocess_islandora_basic_collectio
   foreach ($variables['associated_objects_array'] as $object) {
     $thumb_link = $object['thumb_link'];
     $title_link = filter_xss($object['title_link']);
-    $classes_to_add = array();
-    $str_or_array = gettype($object['class']) == 'string' ? TRUE : FALSE ;
-    if (!$str_or_array) {
-      foreach ($object['class'] as $class){
-        $classes_to_add[] = $class;
-      }
+    foreach ($variables['associated_objects_array'] as $object) {
+      $models = isset($object['models']);
+      $grid_group[] = $models ? islandora_custom_collection_grid($object, $object['models']) : islandora_custom_collection_grid($object); ;
     }
-    else{
-      $classes_to_add[] = $object['class'];
-    }
-    $classes_string =  stringify_classes_array($classes_to_add);
-    $grid_cell = [
-      '#theme' => 'grid_cell',
-      'classes' => $classes_string,
-      'thumb' => $thumb_link,
-      'title' => $title_link,
-    ];
-    $grid_group[] = theme('grid_cell', $grid_cell);
+    $variables['rendered_grids'] = $grid_group;
   }
-  $variables['rendered_grids'] = $grid_group;
 }
 
 function islandora_basic_collection_display_theme_registry_alter(&$theme_registry) {
