@@ -2,4 +2,4 @@ name = islandora basic collection display
 description = overrides islandora_solution_pack_collection basic collection template. overrides theme registry.
 core = 7.x
 dependencies[] = islandora
-
+dependencies[] = islandora_custom_collection_grid
