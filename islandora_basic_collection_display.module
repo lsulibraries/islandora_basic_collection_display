@@ -24,14 +24,14 @@ function islandora_basic_collection_display_preprocess_islandora_basic_collectio
     $variables['associated_objects_array'][$pid]['class'] = $models;
   }
   //add grids to variables to be rendered
-  $grid_group = array();
+  $grids = array();
   foreach ($variables['associated_objects_array'] as $object) {
     $thumb_link = $object['thumb_link'];
     $title_link = filter_xss($object['title_link']);
     foreach ($variables['associated_objects_array'] as $object) {
-      $grid_group[] = islandora_custom_collection_grid($object);
+      $grids[] = islandora_custom_collection_grid($object);
     }
-    $variables['rendered_grids'] = $grid_group;
+    $variables['rendered_grids'] = $grids;
   }
 }
 
