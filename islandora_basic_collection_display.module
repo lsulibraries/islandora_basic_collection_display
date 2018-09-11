@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * @file
+ * contains grid markup, hook_theme_registry_alter and preprocess function
+ * allows override of all templates in islandora_solution_pack_collection
+ */
+
+/**
+ * applies variables created by hook_preprocess_hook to create markup for grid
+ * @param object
+ * $object is result of islandora_object_load
+ */
 function islandora_custom_collection_grid($object) {
   $classes_to_add = array();
   $str_or_array = gettype($object['class']) == 'string' ? TRUE : FALSE ;
@@ -32,9 +43,14 @@ function stringify_classes_array($classes_array) {
   return $string;
 }
 
+/**
+ * implements hook_preprocess_hook().
+ * adds/modifies variables for islandora-basic-collection-grid.tpl.php
+ *
+ */
 function islandora_basic_collection_display_preprocess_islandora_basic_collection_grid(&$variables) {
   foreach ($variables['collection_results'] as $result) {
-    // add cmodels
+    // add cmodels to object classes
     $pid = $result['object']['value'];
     $object = islandora_object_load($pid);
     $models = $object->models;
@@ -44,24 +60,27 @@ function islandora_basic_collection_display_preprocess_islandora_basic_collectio
     $models[] = $original_class;
     $variables['associated_objects_array'][$pid]['class'] = $models;
   }
-  //replace grid
+  //add grids to variables to be rendered
   $grid_group = array();
   foreach ($variables['associated_objects_array'] as $object) {
     $thumb_link = $object['thumb_link'];
     $title_link = filter_xss($object['title_link']);
     foreach ($variables['associated_objects_array'] as $object) {
-      $models = isset($object['models']);
-      $grid_group[] = $models ? islandora_custom_collection_grid($object, $object['models']) : islandora_custom_collection_grid($object); ;
+      $grid_group[] = islandora_custom_collection_grid($object);
     }
     $variables['rendered_grids'] = $grid_group;
   }
 }
 
+/**
+ * implements hook_theme_registry_alter().
+ * overrides islandora_solution_pack_collection's template files
+ */
 function islandora_basic_collection_display_theme_registry_alter(&$theme_registry) {
   $path = drupal_get_path('module','islandora_basic_collection_display');
-  $template_files = drupal_find_theme_templates($theme_registry, '.tpl.php', $path);
-  foreach ($template_files as $key => $file) {
-    $theme_registry[$key]['theme path']= $path;
+  $templates = drupal_find_theme_templates($theme_registry, '.tpl.php', $path);
+  foreach ($templates as $key => $file) {
+    $theme_registry[$key]['theme path'] = $path;
     $theme_registry[$key] = array_merge($theme_registry[$key], $file);
   }
 }
