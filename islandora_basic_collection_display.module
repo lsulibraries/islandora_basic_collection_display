@@ -13,49 +13,6 @@ function stringify_classes_array($classes_array){
   return $string;
 }
 
-function islandora_basic_collection_display_preprocess_islandora_basic_collection_grid(&$variables){
-  foreach ($variables['collection_results'] as $result){
-
-    dpm($variable['associated_objects_array'][$pid]['class']);
-  }
-  //replace grid
-  $grid_group = array();
-  foreach ($variables['associated_objects_array'] as $object) {
-    // add cmodels
-    $pid = $result['object']['value'];
-    $object = islandora_object_load($pid);
-    $models = $object->models;
-    $key = array_search('fedora-system:FedoraObject-3.0', $models);
-    unset($models[$key]);
-    $original_class = $variables['associated_objects_array'][$pid]['class'];
-    $models[] = $original_class;
-    $variables['associated_objects_array'][$pid]['class'] = $models;
-    //replace grid
-    $thumb_link = $object['thumb_link'];
-    $title_link = filter_xss($object['title_link']);
-    $classes_to_add = array();
-    $str_or_array = gettype($object['class']) == 'string' ? TRUE : FALSE ;
-
-    if (!$str_or_array) {
-      foreach ($object['class'] as $class){
-        $classes_to_add[] = $class;
-      }
-    }
-    else{
-      $classes_to_add[] = $object['class'];
-    }
-    $classes_string =  stringify_classes_array($classes_to_add);
-    $grid_cell = [
-        '#theme' => 'grid_cell',
-        'classes' => $classes_string,
-        'thumb' => $thumb_link,
-        'title' => $title_link,
-        ];
-    $grid_group[] = theme('grid_cell', $grid_cell);
-  }
-  $variables['rendered_grids'] = $grid_group;
-  dpm($vars['associated_objects_array']['latech-cmprt:collection']['class'])
-}
 
 function theme_grid_cell($vars) {
     $cell = $vars['grid_cell'];
@@ -73,6 +30,47 @@ function islandora_basic_collection_display_theme() {
     return $theme;
 }
 
+function islandora_basic_collection_display_preprocess_islandora_basic_collection_grid(&$variables){
+  foreach($variables['collection_results'] as $result){
+
+  // add cmodels
+  $pid = $result['object']['value'];
+  $object = islandora_object_load($pid);
+  $models = $object->models;
+  $key = array_search('fedora-system:FedoraObject-3.0', $models);
+  unset($models[$key]);
+  $original_class = $variables['associated_objects_array'][$pid]['class'];
+  $models[] = $original_class;
+  $variables['associated_objects_array'][$pid]['class'] = $models;
+}
+  //replace grid
+  $grid_group = array();
+  foreach ($variables['associated_objects_array'] as $object) {
+    //replace grid
+    $thumb_link = $object['thumb_link'];
+    $title_link = filter_xss($object['title_link']);
+    $classes_to_add = array();
+    $str_or_array = gettype($object['class']) == 'string' ? TRUE : FALSE ;
+
+    if (!$str_or_array) {
+      foreach ($object['class'] as $class){
+        $classes_to_add[] = $class;
+      }
+    }
+    else{
+      $classes_to_add[] = $object['class'];
+    }
+    $classes_string =  stringify_classes_array($classes_to_add);
+    $grid_cell = [
+      '#theme' => 'grid_cell',
+      'classes' => $classes_string,
+      'thumb' => $thumb_link,
+      'title' => $title_link,
+    ];
+    $grid_group[] = theme('grid_cell', $grid_cell);
+  }
+  $variables['rendered_grids'] = $grid_group;
+}
 
 function islandora_basic_collection_display_theme_registry_alter(&$theme_registry) {
   $path = drupal_get_path('module','islandora_basic_collection_display');
