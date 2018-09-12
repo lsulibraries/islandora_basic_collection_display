@@ -21,17 +21,7 @@ function islandora_basic_collection_display_preprocess_islandora_basic_collectio
     unset($models[$key]);
     $original_class = $variables['associated_objects_array'][$pid]['class'];
     $models[] = $original_class;
-    $variables['associated_objects_array'][$pid]['class'] = $models;
-  }
-  //add grids to variables to be rendered
-  $grids = array();
-  foreach ($variables['associated_objects_array'] as $object) {
-    $thumb_link = $object['thumb_link'];
-    $title_link = filter_xss($object['title_link']);
-    foreach ($variables['associated_objects_array'] as $object) {
-      $grids[] = islandora_custom_collection_grid($object);
-    }
-    $variables['rendered_grids'] = $grids;
+    $variables['associated_objects_array'][$pid]['class'] = implode(' ', $models);
   }
 }
 
@@ -46,41 +36,4 @@ function islandora_basic_collection_display_theme_registry_alter(&$theme_registr
     $theme_registry[$key]['theme path'] = $path;
     $theme_registry[$key] = array_merge($theme_registry[$key], $file);
   }
-}
-
-/**
- * applies variables created by hook_preprocess_hook to create markup for grid
- * @param object
- * $object is result of islandora_object_load
- */
-function islandora_custom_collection_grid($object) {
-  $classes_to_add = array();
-  $str_or_array = gettype($object['class']) == 'string' ? TRUE : FALSE ;
-  if (!$str_or_array) {
-  foreach ($object['class'] as $class){
-      $classes_to_add[] = $class;
-    }
-  }
-  else{
-    $classes_to_add[] = $object['class'];
-  }
-    $classes_string =  stringify_classes_array($classes_to_add);
-    $thumb_link = $object['thumb_link'];
-    $title_link = filter_xss($object['title_link']);
-    $output = array(
-      'grid' => array(
-        '#type' => 'markup',
-        '#markup' =>
-        "<dl class='islandora-basic-collection-object $classes_string>
-          <dt class='islandora-basic-collection-thumb'> $thumb_link </dt>
-          <dd class='islandora-basic-collection-caption'> $title_link </dd>
-        </dl>",
-    ),
-  );
-  return $output;
-}
-
-function stringify_classes_array($classes_array) {
-  $string = implode(' ', $classes_array);
-  return $string;
 }
