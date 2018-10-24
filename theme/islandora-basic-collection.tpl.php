@@ -11,24 +11,24 @@
 <div class="islandora islandora-basic-collection">
     <?php $row_field = 0; ?>
     <?php foreach($associated_objects_array as $associated_object): ?>
-      <div class="islandora-basic-collection-object islandora-basic-collection-list-item clearfix">
-        <dl class="<?php print $associated_object['class']; ?>">
-            <dt>
+      <div class="islandora-basic-collection-object1 islandora-basic-collection-list-item clearfix">
+        <div class="<?php print $associated_object['class']; ?>">
+            <div>
               <?php if (isset($associated_object['thumb_link'])): ?>
                 <?php print $associated_object['thumb_link']; ?>
               <?php endif; ?>
-            </dt>
-            <dd class="collection-value <?php print isset($associated_object['dc_array']['dc:title']['class']) ? $associated_object['dc_array']['dc:title']['class'] : ''; ?> <?php print $row_field == 0 ? ' first' : ''; ?>">
+            </div>
+            <div class="collection-value <?php print isset($associated_object['dc_array']['dc:title']['class']) ? $associated_object['dc_array']['dc:title']['class'] : ''; ?> <?php print $row_field == 0 ? ' first' : ''; ?>">
               <?php if (isset($associated_object['thumb_link'])): ?>
                 <strong><?php print filter_xss($associated_object['title_link']); ?></strong>
               <?php endif; ?>
-            </dd>
+            </div>
             <?php if (isset($associated_object['dc_array']['dc:description']['value'])): ?>
-              <dd class="collection-value <?php print $associated_object['dc_array']['dc:description']['class']; ?>">
+              <div class="collection-value <?php print $associated_object['dc_array']['dc:description']['class']; ?>">
                 <?php print filter_xss($associated_object['dc_array']['dc:description']['value']); ?>
-              </dd>
+              </div>
             <?php endif; ?>
-        </dl>
+        </div>
       </div>
     <?php $row_field++; ?>
     <?php endforeach; ?>
