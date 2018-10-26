@@ -39,7 +39,7 @@ function islandora_basic_collection_display_preprocess_islandora_basic_collectio
         $variables['associated_objects_array'][$pid]['date_created'] = $mods->dateCreated;
       }
       elseif (isset($mods->originInfo->dateIssued)) {
-        $variables['associated_objects_array'][$pid]['date_created'] =$mods->originInfo->dateIssued;
+        $variables['associated_objects_array'][$pid]['date_created'] = $mods->originInfo->dateIssued;
       }
       //we need xpath to get all the subject nodes
       $variables['associated_objects_array'][$pid]['subject'] = isset($mods->subject->topic) ? $mods->subject->topic : 'PLACEHOLDER_subject';
@@ -47,14 +47,20 @@ function islandora_basic_collection_display_preprocess_islandora_basic_collectio
       $variables['associated_objects_array'][$pid]['abstract'] = isset($mods->abstract) ? $mods->abstract : 'PLACEHOLDER_description';
       //for collection only
       $variables['associated_objects_array'][$pid]['note'] = isset($mods->note) ? $mods->note : 'PLACEHOLDER_note';
-      $variables['associated_objects_arry'][$pid]['contact'] = isset($mods->name->namePart) ? $mods->name->namePart : 'PLACEHOLDER_contact';
-      //CONTENT STATS stuff
-      // if (module_exists('islandora_content_stats')) {
-      //   db_query("SELECT * from islandora_content_stats where $pid");
-      //   $variables['associated_objects_arry'][$pid]['stats'] = '';
-      // }
+      $variables['associated_objects_array'][$pid]['contact'] = isset($mods->name->namePart) ? $mods->name->namePart : 'PLACEHOLDER_contact';
 
     }
+    //CONTENT STATS stuff
+    // if (module_exists('islandora_content_stats')) {
+    //   db_query("SELECT * from islandora_content_stats where coll = $pid");
+    // if more than one cmodel is present in coll:
+    // show the stats breakdown.
+    $variables['associated_objects_array'][$pid]['stats']['images'] = '20';
+    $variables['associated_objects_array'][$pid]['stats']['pdf'] = '7';
+    $variables['associated_objects_array'][$pid]['stats']['compound'] = '220';
+    // otherwise just do totals
+    $variables['associated_objects_array'][$pid]['stats']['total'] = '247';
+    // }
   }
 }
 
