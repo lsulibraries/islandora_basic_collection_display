@@ -43,7 +43,19 @@ function islandora_basic_collection_display_preprocess_islandora_basic_collectio
       }
       //we need xpath to get all the subject nodes
       $variables['associated_objects_array'][$pid]['subject'] = isset($mods->subject->topic) ? $mods->subject->topic : 'PLACEHOLDER_subject';
-      //dpm($mods->xpath('subject//*'));
+
+      $subjects_xml = $mods->xpath('//mods:subject/*');
+      $subjects_array = array();
+      foreach($subjects_xml as $subject) {
+        $stripped = preg_replace('/\s+/', '', $subject);
+        if((string) $stripped != ''){
+          $subjects_array[] = (string) $subject;
+        }
+      }
+      foreach($subjects_array as $key => $value) {
+        $variables['associated_objects_array'][$pid]['subjects'][$key] = $value;
+      }
+      //dpm($mods->registerXPathNamespace());
       $variables['associated_objects_array'][$pid]['abstract'] = isset($mods->abstract) ? $mods->abstract : 'PLACEHOLDER_description';
       //for collection only
       $variables['associated_objects_array'][$pid]['note'] = isset($mods->note) ? $mods->note : 'PLACEHOLDER_note';
@@ -51,17 +63,24 @@ function islandora_basic_collection_display_preprocess_islandora_basic_collectio
 
     }
     //CONTENT STATS stuff
-    // if (module_exists('islandora_content_stats')) {
+    if (module_exists('islandora_content_stats')) {
     //   db_query("SELECT * from islandora_content_stats where coll = $pid");
-    // if more than one cmodel is present in coll:
     // show the stats breakdown.
-    $variables['associated_objects_array'][$pid]['stats']['images'] = '20';
-    $variables['associated_objects_array'][$pid]['stats']['pdf'] = '7';
-    $variables['associated_objects_array'][$pid]['stats']['compound'] = '220';
-    // otherwise just do totals
-    $variables['associated_objects_array'][$pid]['stats']['total'] = '247';
-    // }
+
+      if (in_array('islandora:collectionCModel', $variables['associated_objects_array'][$pid]['object']->models)) {
+        //foreach($results as $stat) {
+        //$variables['associated_objects_array'][$pid]['stats'][$stats->cmodel] = $stats->count;
+          $variables['associated_objects_array'][$pid]['stats']['images'] = '20';
+          $variables['associated_objects_array'][$pid]['stats']['pdf'] = '7';
+          $variables['associated_objects_array'][$pid]['stats']['compound'] = '220';
+          // otherwise just do totals
+          $variables['associated_objects_array'][$pid]['stats']['total'] = '247';
+          // }
+        // }
+      }
+    }
   }
+
 }
 
 /**

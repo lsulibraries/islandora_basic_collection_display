@@ -20,7 +20,10 @@
         <div class='islandora-basic-collection-caption'> <?php print filter_xss($object['title_link']); ?> </div>
         <?php if(!in_array('islandora:collectionCModel', $object['object']->models)) : ?>
           <div class='islandora-basic-object-date_created'> <?php print filter_xss($object['date_created']); ?> </div>
-          <div class='islandora-basic-object-subject'> <?php print filter_xss($object['subject']); ?> </div>
+          <?php foreach ($object['subjects'] as $key => $sub) :?>
+            <div class='islandora-basic-object-<?php print $key ?>'> <?php print filter_xss($sub); ?> </div>
+
+          <?php endforeach; ?>
           <div class='islandora-basic-object-abstract'> <?php print filter_xss($object['abstract']); ?> </div>
         <?php endif; ?>
         <?php if(in_array('islandora:collectionCModel', $object['object']->models) && isset($object['object']['MODS'])) : ?>
