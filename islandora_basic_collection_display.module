@@ -11,6 +11,14 @@
  * adds/modifies variables for islandora-basic-collection-grid.tpl.php
  *
  */
+ //to add :
+ // Mods->creator if set.
+ // Mods->datecreated if set
+ // Coll stats (fake for now):
+ // // -content-types + counts (if multiple types exist)
+ // // - total (always show)
+ //
+
 function islandora_basic_collection_display_preprocess_islandora_basic_collection_grid(&$variables) {
   foreach ($variables['collection_results'] as $result) {
     // add cmodels to object classes
@@ -22,6 +30,31 @@ function islandora_basic_collection_display_preprocess_islandora_basic_collectio
     $original_class = $variables['associated_objects_array'][$pid]['class'];
     $models[] = $original_class;
     $variables['associated_objects_array'][$pid]['class'] = implode(' ', $models);
+    if (isset($object['MODS'])) {
+      $mods_ds = $object['MODS'];
+      //dpm($mods_ds->content);
+      $mods = simplexml_load_string($mods_ds->content);
+      $variables['associated_objects_array'][$pid]['creator'] = isset($mods->creator) ? $mods->creator : 'PLACEHOLDER_creator';
+      if(isset($mods->dateCreated)) {
+        $variables['associated_objects_array'][$pid]['date_created'] = $mods->dateCreated;
+      }
+      elseif (isset($mods->originInfo->dateIssued)) {
+        $variables['associated_objects_array'][$pid]['date_created'] =$mods->originInfo->dateIssued;
+      }
+      //we need xpath to get all the subject nodes
+      $variables['associated_objects_array'][$pid]['subject'] = isset($mods->subject->topic) ? $mods->subject->topic : 'PLACEHOLDER_subject';
+      //dpm($mods->xpath('subject//*'));
+      $variables['associated_objects_array'][$pid]['abstract'] = isset($mods->abstract) ? $mods->abstract : 'PLACEHOLDER_description';
+      //for collection only
+      $variables['associated_objects_array'][$pid]['note'] = isset($mods->note) ? $mods->note : 'PLACEHOLDER_note';
+      $variables['associated_objects_arry'][$pid]['contact'] = isset($mods->name->namePart) ? $mods->name->namePart : 'PLACEHOLDER_contact';
+      //CONTENT STATS stuff
+      // if (module_exists('islandora_content_stats')) {
+      //   db_query("SELECT * from islandora_content_stats where $pid");
+      //   $variables['associated_objects_arry'][$pid]['stats'] = '';
+      // }
+
+    }
   }
 }
 
