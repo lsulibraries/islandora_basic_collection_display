@@ -2,74 +2,74 @@
 
 /**
  * @file
- * contains grid markup, hook_theme_registry_alter and preprocess function
- * allows override of all templates in islandora_solution_pack_collection
+ * Contains grid markup, hook_theme_registry_alter and preprocess function.
+ * Allows override of all templates in islandora_solution_pack_collection.
  */
 
 /**
- * implements hook_preprocess_hook().
- * adds/modifies variables for islandora-basic-collection-grid.tpl.php
+ * Implements hook_preprocess_hook().
+ * Adds/modifies variables for islandora-basic-collection-grid.tpl.php
  *
  */
- //to add :
- // Mods->creator if set.
- // Mods->datecreated if set
- // Coll stats (fake for now):
- // // -content-types + counts (if multiple types exist)
- // // - total (always show)
- //
 
 function islandora_basic_collection_display_preprocess_islandora_basic_collection_grid(&$variables) {
   foreach ($variables['collection_results'] as $result) {
-    // add cmodels to object classes
+    // Add cmodels to object classes.
     $pid = $result['object']['value'];
     $object = islandora_object_load($pid);
     $models = $object->models;
+    // Unset FedoraObject model.
     $key = array_search('fedora-system:FedoraObject-3.0', $models);
     unset($models[$key]);
+    // Don't override original classes.
     $original_class = $variables['associated_objects_array'][$pid]['class'];
     $models[] = $original_class;
     $variables['associated_objects_array'][$pid]['class'] = implode(' ', $models);
     if (isset($object['MODS'])) {
       $mods_ds = $object['MODS'];
-      //dpm($mods_ds->content);
       $mods = simplexml_load_string($mods_ds->content);
       $variables['associated_objects_array'][$pid]['creator'] = isset($mods->creator) ? $mods->creator : 'PLACEHOLDER_creator';
-      if(isset($mods->dateCreated)) {
+
+      // One or the other date field.
+      if (isset($mods->dateCreated)) {
         $variables['associated_objects_array'][$pid]['date_created'] = $mods->dateCreated;
       }
       elseif (isset($mods->originInfo->dateIssued)) {
         $variables['associated_objects_array'][$pid]['date_created'] = $mods->originInfo->dateIssued;
       }
-      //we need xpath to get all the subject nodes
-      $variables['associated_objects_array'][$pid]['subject'] = isset($mods->subject->topic) ? $mods->subject->topic : 'PLACEHOLDER_subject';
 
+      // We need xpath to get all the subject nodes.
+      // Make them into a link to a solr search.
       $subjects_xml = $mods->xpath('//mods:subject/*');
       $subjects_array = array();
       foreach($subjects_xml as $subject) {
+        // Strip whitespace.
         $stripped = preg_replace('/\s+/', '', $subject);
-        if((string) $stripped != ''){
+        // Don't return empty strings, after trimming.
+        if ( (string) $stripped != ''){
           $subjects_array[] = (string) $subject;
         }
       }
-      foreach($subjects_array as $key => $value) {
+      foreach ($subjects_array as $key => $value) {
         $variables['associated_objects_array'][$pid]['subjects'][$key] = $value;
       }
-      //dpm($mods->registerXPathNamespace());
       $variables['associated_objects_array'][$pid]['abstract'] = isset($mods->abstract) ? $mods->abstract : 'PLACEHOLDER_description';
-      //for collection only
+
+      // For collection only.
       $variables['associated_objects_array'][$pid]['note'] = isset($mods->note) ? $mods->note : 'PLACEHOLDER_note';
       $variables['associated_objects_array'][$pid]['contact'] = isset($mods->name->namePart) ? $mods->name->namePart : 'PLACEHOLDER_contact';
 
     }
-    //CONTENT STATS stuff
+
+    // Content Stats for collections level stuff
     if (module_exists('islandora_content_stats')) {
     //   db_query("SELECT * from islandora_content_stats where coll = $pid");
     // show the stats breakdown.
 
       if (in_array('islandora:collectionCModel', $variables['associated_objects_array'][$pid]['object']->models)) {
-        //foreach($results as $stat) {
-        //$variables['associated_objects_array'][$pid]['stats'][$stats->cmodel] = $stats->count;
+        // foreach($results as $stat) {
+        // $variables['associated_objects_array'][$pid]['stats'][$stats->cmodel] = $stats->count;
+        // if more than one model exist per collection, provide the item count per model
           $variables['associated_objects_array'][$pid]['stats']['images'] = '20';
           $variables['associated_objects_array'][$pid]['stats']['pdf'] = '7';
           $variables['associated_objects_array'][$pid]['stats']['compound'] = '220';
@@ -80,12 +80,11 @@ function islandora_basic_collection_display_preprocess_islandora_basic_collectio
       }
     }
   }
-
 }
 
 /**
- * implements hook_theme_registry_alter().
- * overrides islandora_solution_pack_collection's template files
+ * Implements hook_theme_registry_alter().
+ * Overrides islandora_solution_pack_collection's template files.
  */
 function islandora_basic_collection_display_theme_registry_alter(&$theme_registry) {
   $path = drupal_get_path('module','islandora_basic_collection_display');
