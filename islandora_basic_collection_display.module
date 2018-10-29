@@ -43,20 +43,22 @@ function islandora_basic_collection_display_preprocess_islandora_basic_collectio
 
       // We need xpath to get all the subject nodes.
       // Make them into a link to a solr search.
-      $subjects_xml = $mods->xpath('//mods:subject/*');
-      $subjects_array = array();
-      foreach($subjects_xml as $subject) {
-        // Strip whitespace.
-        $stripped = preg_replace('/\s+/', '', $subject);
-        // Don't return empty strings, after trimming.
-        if ( (string) $stripped != ''){
-          $subjects_array[] = (string) $subject;
+      if($mods->subject){
+        $subjects_xml = $mods->xpath('//mods:subject/*');
+        $subjects_array = array();
+        foreach($subjects_xml as $subject) {
+          // Strip whitespace.
+          $stripped = preg_replace('/\s+/', '', $subject);
+          // Don't return empty strings, after trimming.
+          if ( (string) $stripped != ''){
+            $subjects_array[] = (string) $subject;
+          }
         }
-      }
-      foreach ($subjects_array as $key => $value) {
-        // Not a perfect link solution. mods_display.xsl provides more comprehensive links. This doesn't distinguish between types of solr fields,
-        // Compound subjects ie(Military Camps--Camp Ruston) are not presented as a sigle topic.
-        $variables['associated_objects_array'][$pid]['subjects'][$key] = l($value, "/islandora/search/\"$value\"?type=dismax");
+        foreach ($subjects_array as $key => $value) {
+          // Not a perfect link solution. mods_display.xsl provides more comprehensive links. This doesn't distinguish between types of solr fields,
+          // Compound subjects ie(Military Camps--Camp Ruston) are not presented as a sigle topic.
+          $variables['associated_objects_array'][$pid]['subjects'][$key] = l($value, "/islandora/search/\"$value\"?type=dismax");
+        }
       }
       $variables['associated_objects_array'][$pid]['abstract'] = isset($mods->abstract) ? $mods->abstract : 'PLACEHOLDER_description';
 

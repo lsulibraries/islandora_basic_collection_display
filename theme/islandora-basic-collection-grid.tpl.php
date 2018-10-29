@@ -6,7 +6,14 @@
  * @TODO: needs documentation about file and variables
  */
 ?>
-
+<?php if (isset($key_image)) : ?>
+  <div class='parralax-mirror'>
+    <img class='parralax-slider' src='<?php print $key_image['path']?>'></img>
+    <?php foreach ($key_image['meta'] as $meta) : ?>
+      <div class='pallax-meta'><?php print $meta ?></div>
+    <?php endforeach; ?>
+  </div>
+<?php endif; ?>
 <div class="islandora islandora-basic-collections helloKyle">
   <div class="islandora-basic-collection-grid clearfix">
     <?php foreach ($variables['associated_objects_array'] as $object) : ?>
