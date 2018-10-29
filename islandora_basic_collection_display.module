@@ -51,7 +51,7 @@ function islandora_basic_collection_display_preprocess_islandora_basic_collectio
         }
       }
       foreach ($subjects_array as $key => $value) {
-        $variables['associated_objects_array'][$pid]['subjects'][$key] = $value;
+        $variables['associated_objects_array'][$pid]['subjects'][$key] = l($value, "/islandora/search/\"$value\"?type=dismax");
       }
       $variables['associated_objects_array'][$pid]['abstract'] = isset($mods->abstract) ? $mods->abstract : 'PLACEHOLDER_description';
 

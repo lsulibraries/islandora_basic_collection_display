@@ -21,7 +21,7 @@
         <?php if(!in_array('islandora:collectionCModel', $object['object']->models)) : ?>
           <div class='islandora-basic-object-date_created'> <?php print filter_xss($object['date_created']); ?> </div>
           <?php foreach ($object['subjects'] as $key => $sub) :?>
-            <div class='islandora-basic-object-<?php print $key ?>'> <?php print filter_xss($sub); ?> </div>
+            <div class='islandora-basic-object-<?php print $key; print ' modsSubject' ?>'> <?php print filter_xss($sub); ?> </div>
 
           <?php endforeach; ?>
           <div class='islandora-basic-object-abstract'> <?php print filter_xss($object['abstract']); ?> </div>
