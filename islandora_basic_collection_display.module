@@ -182,6 +182,17 @@ function islandora_basic_collection_display_preprocess_islandora_basic_collectio
   }
 }
 
+function islandora_basic_collection_display_preprocess_islandora_basic_collection_wrapper(&$variables) {
+  $islandora_object = $variables['islandora_object'];
+  $page_number = (empty($_GET['page'])) ? 0 : $_GET['page'];
+  $page_size = (empty($_GET['pagesize'])) ? variable_get('islandora_basic_collection_page_size', '12') : $_GET['pagesize'];
+  list($total_count, $results) = islandora_basic_collection_get_member_objects($islandora_object, $page_number, $page_size);
+  $page_num = (int) $page_number;
+  //page_number starts at 0...
+  $pagenot_one = $page_num >= 1;
+  $variables['current'] = ($pagenot_one) ? $page_size * $page_num + count($results) : count($results);
+}
+
 /**
  * Implements hook_theme_registry_alter().
  * Overrides islandora_solution_pack_collection's template files.

@@ -8,7 +8,7 @@
  */
 ?>
 
-<div class="islandora-basic-collection-wrapper">
+<div class="islandora-basic-collection-wrapper helloWill">
 <!--    <h1 class="lp-title"><?php //print $landing_page_title  ?></h1>-->
     <h1 class="about-link"><?php print $about_link  ?></h1>
   <?php if (!$display_metadata && !empty($dc_array['dc:description']['value'])): ?>
@@ -18,7 +18,7 @@
   <div class="islandora-basic-collection clearfix">
     <span class="islandora-basic-collection-display-switch">
       <ul class="links inline">
-          <li><span class="islandora-basic-collection-item-count"><?php print $total_count ?> items</span></li>
+          <li><span class="islandora-basic-collection-item-count"><?php print $variables['current']; print " of $total_count items"?></span></li>
         <?php foreach ($view_links as $link): ?>
           <li>
             <a <?php print drupal_attributes($link['attributes']) ?>><?php print filter_xss($link['title']) ?></a>
