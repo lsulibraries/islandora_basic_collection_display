@@ -28,8 +28,15 @@ function islandora_basic_collection_display_preprocess_islandora_basic_collectio
     if (isset($object['MODS'])) {
       $mods_ds = $object['MODS'];
       $mods = simplexml_load_string($mods_ds->content);
-      $variables['associated_objects_array'][$pid]['creator'] = isset($mods->creator) ? $mods->creator : 'PLACEHOLDER_creator';
-
+      //need to xpath to attribute @creator
+      if ($mods->name->namePart) {
+        $creators = $mods->xpath('//mods:name[@displayLabel="Creator"]');
+        foreach ($creators as $name) {
+          $variables['associated_objects_array'][$pid]['creator'][] = isset($name->namePart) ? (string) $name->namePart : 'PLACEHOLDER_creator';
+        }
+      }
+      //'creator' is not showing up in the page...
+      //dpm($variables['associated_objects_array'][$pid]['creator']);
       // One or the other date field.
       if (isset($mods->dateCreated)) {
         $variables['associated_objects_array'][$pid]['date_created'] = $mods->dateCreated;
@@ -43,7 +50,7 @@ function islandora_basic_collection_display_preprocess_islandora_basic_collectio
 
       // We need xpath to get all the subject nodes.
       // Make them into a link to a solr search.
-      if($mods->subject){
+      if ($mods->subject){
         $subjects_xml = $mods->xpath('//mods:subject/*');
         $subjects_array = array();
         foreach($subjects_xml as $subject) {
@@ -65,8 +72,8 @@ function islandora_basic_collection_display_preprocess_islandora_basic_collectio
       // For collection only.
       $variables['associated_objects_array'][$pid]['note'] = isset($mods->note) ? $mods->note : 'PLACEHOLDER_note';
       $variables['associated_objects_array'][$pid]['contact'] = isset($mods->name->namePart) ? $mods->name->namePart : 'PLACEHOLDER_contact';
-
     }
+
 
     // Content Stats for collections level stuff
     if (module_exists('islandora_content_stats')) {
@@ -115,7 +122,14 @@ function islandora_basic_collection_display_preprocess_islandora_basic_collectio
     if (isset($object['MODS'])) {
       $mods_ds = $object['MODS'];
       $mods = simplexml_load_string($mods_ds->content);
-      $variables['associated_objects_array'][$pid]['creator'] = isset($mods->creator) ? $mods->creator : 'PLACEHOLDER_creator';
+
+      //need to xpath to attribute @creator
+      if ($mods->name->namePart) {
+        $creators = $mods->xpath('//mods:name[@displayLabel="Creator"]');
+        foreach ($creators as $name) {
+          $variables['associated_objects_array'][$pid]['creator'][] = isset($name->namePart) ? (string) $name->namePart : 'PLACEHOLDER_creator';
+        }
+      }
 
       // One or the other date field.
       if (isset($mods->dateCreated)) {
@@ -193,6 +207,31 @@ function islandora_basic_collection_display_preprocess_islandora_basic_collectio
   //page_number starts at 0...
   $pagenot_one = $page_num >= 1;
   $variables['current'] = ($pagenot_one) ? $page_size * $page_num + count($results) : count($results);
+  // Content Stats for collections level stuff
+  if (module_exists('islandora_content_stats')) {
+    module_load_include('inc', 'islandora_content_stats', 'includes/utilities');
+    $last_run = latest_run();
+    $stats = db_query("SELECT * from {islandora_content_stats} where coll = :pid and timestamp = :timestamp ", array(':pid' => $islandora_object->id, ':timestamp' => $last_run));
+    $results = $stats->fetchAll();
+    $more_than_one = $stats->rowCount() > 1;
+    // show the stats breakdown.
+    $total = 0;
+    foreach($results as $stat) {
+      // more than one model exist per collection, provide the item count per model
+      if($more_than_one){
+        $variables['stats'][map_cmodels($stat->cmodel)] = $stat->count;
+      }
+      $total += $stat->count;
+      $variables['stats']['Total items'] = $total;
+      // placehoders for development
+      if(count($variables['stats']) <= 1){
+        $variables['stats']['Total items'] = '247';
+        $variables['stats']['PLACEHODLER_images'] = '20';
+        $variables['stats']['PLACEHODLER_pdf'] = '7';
+        $variables['stats']['PLACEHODLER_compound'] = '220';
+      }
+    }
+  }
 }
 
 /**

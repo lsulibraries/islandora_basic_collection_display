@@ -25,19 +25,22 @@
               <?php endif; ?>
             </div>
             <?php if(!in_array('islandora:collectionCModel', $object['object']->models)) : ?>
-              <div class='islandora-basic-object-date_created'> <?php print filter_xss($object['date_created']); ?> </div>
+              <div class='islandora-basic-object-date_created'> <?php print $object['date_created']; ?> </div>
               <?php if (isset($object['subjects'])) : ?>
                 <?php foreach ($object['subjects'] as $key => $sub) :?>
-                  <div class='islandora-basic-object-<?php print $key; print ' modsSubject' ?>'> <?php print filter_xss($sub); ?> </div>
+                  <div class='islandora-basic-object-<?php print $key; print ' modsSubject' ?>'> <?php print $sub; ?> </div>
                 <?php endforeach; ?>
               <?php endif; ?>
-              <div class='islandora-basic-object-abstract'> <?php print filter_xss($object['abstract']); ?> </div>
+              <div class='islandora-basic-object-abstract'> <?php print $object['abstract']; ?> </div>
+              <?php foreach ($object['creator'] as $key => $value) : ?>
+                <div class='islandora-basic-collection-creator'> <?php print $value; ?></div>
+              <?php endforeach; ?>
             <?php endif; ?>
             <?php if(in_array('islandora:collectionCModel', $object['object']->models) && isset($object['object']['MODS'])) : ?>
-              <div class='islandora-basic-collection-abstract'> <?php print filter_xss($object['abstract']); ?> </div>
-              <div class='islandora-basic-collection-note'> <?php print filter_xss($object['note']); ?> </div>
+              <div class='islandora-basic-collection-abstract'> <?php print $object['abstract']; ?> </div>
+              <div class='islandora-basic-collection-note'> <?php print $object['note']; ?> </div>
               <?php if(isset($object['contact'])) : ?>
-                <div class='islandora-basic-collection-contact'> <?php print filter_xss($object['contact']); ?> </div>
+                <div class='islandora-basic-collection-contact'> <?php print $object['contact']; ?> </div>
               <?php endif; ?>
             <?php endif; ?>
             <div class="collection-value <?php print isset($object['dc_array']['dc:title']['class']) ? $object['dc_array']['dc:title']['class'] : ''; ?> <?php print $row_field == 0 ? ' first' : ''; ?>">
@@ -47,7 +50,7 @@
             </div>
             <?php if (isset($object['dc_array']['dc:description']['value'])): ?>
               <div class="collection-value <?php print $object['dc_array']['dc:description']['class']; ?>">
-                <?php print filter_xss($object['dc_array']['dc:description']['value']); ?>
+                <?php print $object['dc_array']['dc:description']['value']; ?>
               </div>
             <?php endif; ?>
         </div>
