@@ -22,12 +22,20 @@
             <div class="list-thumbnail">
               <?php if (isset($object['thumb_link'])): ?>
                 <?php print $object['thumb_link']; ?>
+                <div class='list-hover'>
+                  <div class='islandora-basic-object-date_created'> <?php print filter_xss($object['date_created']); ?></div>
+                  <?php /* if (isset($object['dc_array']['dc:description']['value'])): ?>
+                    <div class="collection-value <?php print $object['dc_array']['dc:description']['class']; ?>">
+                      <?php print filter_xss($object['dc_array']['dc:description']['value']); ?>
+                    </div>
+                  <?php endif; */ ?>
+                </div>
               <?php endif; ?>
             </div>
             <div class="list-text">
               <div class="collection-value <?php print isset($object['dc_array']['dc:title']['class']) ? $object['dc_array']['dc:title']['class'] : ''; ?> <?php print $row_field == 0 ? ' first' : ''; ?>">
                 <?php if (isset($object['thumb_link'])): ?>
-                  <strong><?php print filter_xss($object['title_link']); ?></strong>
+                  <?php print filter_xss($object['title_link']); ?>
                 <?php endif; ?>
               </div>              
                 <div class='islandora-basic-object-abstract'> <?php print filter_xss($object['abstract']); ?> </div>
@@ -47,15 +55,6 @@
                   <div class='islandora-basic-collection-contact'> <?php print filter_xss($object['contact']); ?> </div>
                 <?php endif; ?>
               <?php endif; ?>
-            </div>
-            <div class='list-hover'>
-              <div class='islandora-basic-object-date_created'> <?php print filter_xss($object['date_created']); ?> </div>           
-              <?php /* if (isset($object['dc_array']['dc:description']['value'])): ?>
-                <div class="collection-value <?php print $object['dc_array']['dc:description']['class']; ?>">
-                  <?php print filter_xss($object['dc_array']['dc:description']['value']); ?>
-                </div>
-              <?php endif; */ ?> 
-
             </div>
         </div>
       </div>
