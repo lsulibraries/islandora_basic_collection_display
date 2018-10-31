@@ -32,12 +32,24 @@ function islandora_basic_collection_display_preprocess_islandora_basic_collectio
       //this could be a much better solution to our problems
       module_load_include('module', 'islandora_mods_display');
       $x = islandora_mods_display_display_callback($variables['associated_objects_array'][$pid]['object']);
+
       dpm($x);
       $dom = new DomDocument();
       $dom->loadHTML($x);
       dpm($dom);
+
+      $jx = simplexml_import_dom($dom);
+      $jsubjs = $jx->xpath('//div[@class="metadataValue modsSubject"]/a');
+      $jchunk = '';
+      foreach($jsubjs as $jsubj) {
+        $jchunk .= $jsubj->asXML() ."\n";
+      }
+      dpm($jchunk);
+      return;
+
       $xpath = new DOMXpath($dom);
       $el = $xpath->query("//div[contains(@class, 'modsSubject')]");
+      // dpm($el->saveXML());
       foreach($el as $e){
         $nodes = $e->childNodes;
         foreach($nodes as $node){
