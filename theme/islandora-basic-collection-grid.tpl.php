@@ -34,8 +34,8 @@
 
         <!-- regular object not collection  -->
           <?php if(isset($object['date_created'])) : ?>
+            <!-- where are my ranged dates?  -->
               <div class='islandora-basic-object-date_created'> <?php print $object['date_created'] ?></div>
-              <!-- where are my ranged dates?  -->
           <?php endif; ?>
           <?php if (isset($object['subjects'])) : ?>
             <?php foreach ($object['subjects'] as $key => $sub) :?>
@@ -67,7 +67,7 @@
             <div class='islandora-basic-object-contact'> <?php print $object['contact']; ?> </div>
           <?php endif; ?>
 
-          
+
       </div>
     <?php endforeach; ?>
 </div>

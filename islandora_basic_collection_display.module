@@ -47,11 +47,14 @@ function islandora_basic_collection_display_preprocess_islandora_basic_collectio
           case $mods->originInfo->dateIssued:
             $variables['associated_objects_array'][$pid]['date_created'] = $mods->originInfo->dateIssued;
           case $mods->originInfo->dateCreated:
-            $variables['associated_objects_array'][$pid]['date_created'] = (string) $mods->originInfo->dateCreated[0] . ' - ' . (string) $mods->originInfo->dateCreated[1];;
+            if(count((array)$mods->originInfo->dateCreated) == 3){
+              //why doesn't this print out two dateCreated fields?
+              dpm($mods->xpath('//mods:originInfo/dateCreated/*'));
+              $variables['associated_objects_array'][$pid]['date_created'] = (string) $mods->originInfo->dateCreated[0] . ' - ' . (string) $mods->originInfo->dateCreated[1];
+              dpm('where are my ranged dates?');
+            }
             //this prints out a good date-range, but the template seems to print out the default case placeholder...
-            //dpm((string)$variables['associated_objects_array'][$pid]['date_created']);
-            //why doesn't this print out two dateCreated fields?
-            //$mods->xpath('//mods:originInfo/dateCreated/*')
+            dpm((string)$variables['associated_objects_array'][$pid]['date_created']);
           default:
             $variables['associated_objects_array'][$pid]['date_created'] = 'PLACEHOLDER_date';
         }
