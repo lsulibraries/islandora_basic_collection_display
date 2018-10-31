@@ -6,6 +6,7 @@
  * @TODO: needs documentation about file and variables
  */
 ?>
+
 <?php if (isset($key_image)) : ?>
   <div class='parralax-mirror'>
     <img class='parralax-slider' src='<?php print $key_image['path']?>'></img>
@@ -26,32 +27,47 @@
     </div>
     <?php foreach ($variables['associated_objects_array'] as $object) : ?>
       <div class='islandora-basic-collection-object masonryItem <?php print $object['class']; ?>'>
-        <?php if(isset($object['stats'])) : ?>
-          <?php foreach($object['stats'] as $cmodel => $value) : ?>
-            <div  class="islandora-basic-collection-content_stats <?php print $cmodel;?>"><?php print "$cmodel: $value"; ?> </div>
-          <?php endforeach; ?>
-        <?php endif; ?>
+
+
         <div class='islandora-basic-collection-caption'> <?php print filter_xss($object['title_link']); ?> </div>
         <div class='islandora-basic-collection-thumb'><?php print $object['thumb_link']; ?> </div>
-        <?php if(!in_array('islandora:collectionCModel', $object['object']->models)) : ?>
-          <div class='islandora-basic-object-date_created'> <?php print $object['date_created']; ?> </div>
+
+        <!-- regular object not collection  -->
+          <?php if(isset($object['date_created'])) : ?>
+              <div class='islandora-basic-object-date_created'> <?php print $object['date_created'] ?></div>
+              <!-- where are my ranged dates?  -->
+          <?php endif; ?>
           <?php if (isset($object['subjects'])) : ?>
             <?php foreach ($object['subjects'] as $key => $sub) :?>
               <div class='islandora-basic-object-<?php print $key; print ' modsSubject' ?>'> <?php print $sub; ?> </div>
             <?php endforeach; ?>
+            <?php if (isset($object['creator'])) : ?>
+              <?php foreach ($object['creator'] as $key => $value) : ?>
+                <div class='islandora-basic-collection-creator'> <?php print $value; ?> </div>
+              <?php endforeach; ?>
+            <?php endif ;?>
           <?php endif; ?>
-          <div class='islandora-basic-object-abstract'> <?php print $object['abstract']; ?> </div>
-        <?php endif; ?>
-        <?php if(in_array('islandora:collectionCModel', $object['object']->models) && isset($object['object']['MODS'])) : ?>
-          <div class='islandora-basic-collection-abstract'> <?php print $object['abstract']; ?> </div>
-          <?php foreach ($object['creator'] as $key => $value) : ?>
-            <div class='islandora-basic-collection-creator'> <?php print $value; ?> </div>
-          <?php endforeach; ?>
-          <div class='islandora-basic-collection-note'> <?php print $object['note']; ?> </div>
+
+
+          <!-- only if on collection -->
+          <?php if(isset($object['stats'])) : ?>
+            <?php foreach($object['stats'] as $cmodel => $value) : ?>
+              <div  class="islandora-basic-collection-content_stats <?php print $cmodel;?>"><?php print "$cmodel: $value"; ?> </div>
+            <?php endforeach; ?>
+          <?php endif; ?>
+
+          <!-- collection and basic object both have this  -->
+          <?php if (isset($object['abstract'])) : ?>
+            <div class='islandora-basic-object-abstract'> <?php print $object['abstract']; ?> </div>
+          <?php endif; ?>
+          <?php if (isset($object['note'])) : ?>
+            <div class='islandora-basic-object-note'> <?php print $object['note']; ?> </div>
+          <?php endif; ?>
           <?php if(isset($object['contact'])) : ?>
-            <div class='islandora-basic-collection-contact'> <?php print $object['contact']; ?> </div>
+            <div class='islandora-basic-object-contact'> <?php print $object['contact']; ?> </div>
           <?php endif; ?>
-        <?php endif; ?>
+
+          
       </div>
     <?php endforeach; ?>
 </div>
