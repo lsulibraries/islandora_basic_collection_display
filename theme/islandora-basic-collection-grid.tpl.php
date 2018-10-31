@@ -42,9 +42,7 @@
               <div class='islandora-basic-object-<?php print $key; print ' modsSubject' ?>'> <?php print $sub; ?> </div>
             <?php endforeach; ?>
             <?php if (isset($object['creator'])) : ?>
-              <?php foreach ($object['creator'] as $key => $value) : ?>
-                <div class='islandora-basic-collection-creator'> <?php print $value; ?> </div>
-              <?php endforeach; ?>
+                <div class='islandora-basic-collection-creator'> <?php print $object['creator']; ?> </div>
             <?php endif ;?>
           <?php endif; ?>
 

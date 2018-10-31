@@ -6,6 +6,20 @@
  * Allows override of all templates in islandora_solution_pack_collection.
  */
 
+function get_two_siblings_metaLabel($elder, $simple_xml_mods){
+  $xpath = $simple_xml_mods->xpath("//div[@class='metadataLabel' and text() = '$elder']");
+  $xpath2 = $simple_xml_mods->xpath("//div[@class='metadataLabel' and text() = '$elder']/following-sibling::div");
+  $return  =  '';
+  foreach ($xpath as $label){
+    $return .= $label->asXML();
+    foreach ($xpath2 as $date) {
+      $return .= $date->asXml();
+    }
+  }
+  return $return;
+}
+
+
 /**
  * Implements hook_preprocess_hook().
  * Adds/modifies variables for islandora-basic-collection-grid.tpl.php
@@ -27,125 +41,48 @@ function islandora_basic_collection_display_preprocess_islandora_basic_collectio
     $variables['associated_objects_array'][$pid]['class'] = implode(' ', $models);
     if (isset($object['MODS'])) {
 
-      // we could go down this dark and Gnarly path to re-create the meta we want direct from the mods:::
-      //OR....
-      //this could be a much better solution to our problems
       module_load_include('module', 'islandora_mods_display');
-      $x = islandora_mods_display_display_callback($variables['associated_objects_array'][$pid]['object']);
+      $mods_markup = islandora_mods_display_display_callback($variables['associated_objects_array'][$pid]['object']);
 
-      dpm($x);
       $dom = new DomDocument();
-      $dom->loadHTML($x);
-      dpm($dom);
+      $dom->loadHTML($mods_markup);
+      $simple_mods = simplexml_import_dom($dom);
 
-      $jx = simplexml_import_dom($dom);
-      $jsubjs = $jx->xpath('//div[@class="metadataValue modsSubject"]/a');
-      $jchunk = '';
-      foreach($jsubjs as $jsubj) {
-        $jchunk .= $jsubj->asXML() ."\n";
-      }
-      dpm($jchunk);
-      return;
-
-      $xpath = new DOMXpath($dom);
-      $el = $xpath->query("//div[contains(@class, 'modsSubject')]");
-      // dpm($el->saveXML());
-      foreach($el as $e){
-        $nodes = $e->childNodes;
-        foreach($nodes as $node){
-          dpm($node->nodeValue);
+      if (!in_array('islandora:collectionCModel', $variables['associated_objects_array'][$pid]['object']->models)) {
+        // objects not collections.
+        //Subjects
+        $subjects = $simple_mods->xpath('//div[@class="metadataValue modsSubject"]/a');
+        $return = array();
+        foreach($subjects as $sub) {
+          $return[] = $sub->asXML() ."\n";
         }
+        $variables['associated_objects_array'][$pid]['subjects'] = $return;
 
-        dpm($e->getAttribute('href'));
-        dpm($e->nodeValue);
+        //Date
+        $return = get_two_siblings_metaLabel("Date Created", $simple_mods);
+        $variables['associated_objects_array'][$pid]['date_created'] = $return;
+
+        //abstract
+        $return = get_two_siblings_metaLabel("Description", $simple_mods);
+        $variables['associated_objects_array'][$pid]['description'] = $return;
+
+        //Creator
+        $return = get_two_siblings_metaLabel("Creator", $simple_mods);
+        $variables['associated_objects_array'][$pid]['creator'] = $return;
       }
-      //dpm($el->saveHTML());
-      // foreach($el as $e) {
-      //   dpm($e->saveHTML());
-      //   // $e->
-      // }
-      // //subjects
-      // $subjects = $xpath->query("//div[@class='metadataValue modsSubject']");
-      // foreach($subjects as $subject){
-      //   dpm($subject->nodeName);
-      //   dpm($subject->nodeValue);
-      //   dpm((array)$subject);
-      // }
-      return;
-      //       foreach($subjects as $element) {
-      //   dpm($element->nodeName);
-      // }
-      //Creator
-      //Date
-      //abstract
-
+      else {
+        //it is a collection
+        $return = get_two_siblings_metaLabel("Abstract", $simple_mods);
+        $variables['associated_objects_array'][$pid]['description'] = $return;
+      }
+      // return;
       //if collection
       //abstract
       //Note
       //Contact
-
-
-
-      $mods_ds = $object['MODS'];
-      $mods = simplexml_load_string($mods_ds->content);
-
-      if (!in_array('islandora:collectionCModel', $variables['associated_objects_array'][$pid]['object']->models)) {
-        //need to xpath to attribute @creator
-        if ($mods->name->namePart) {
-          $creators = $mods->xpath('//mods:name[@displayLabel="Creator"]');
-          foreach ($creators as $name) {
-            $variables['associated_objects_array'][$pid]['creator'][] = isset($name->namePart) ? (string) $name->namePart : 'PLACEHOLDER_creator';
-          }
-        }
-        //'creator' is not showing up in the page...
-        //dpm($variables['associated_objects_array'][$pid]['creator']);
-        // One or the other date field.
-        // Getting kinda gnarly. sometimes there are more than one dateCreated ...
-        switch ($mods){
-          case $mods->dateCreated:
-            $variables['associated_objects_array'][$pid]['date_created'] = $mods->dateCreated;
-          case $mods->originInfo->dateIssued:
-            $variables['associated_objects_array'][$pid]['date_created'] = $mods->originInfo->dateIssued;
-          case $mods->originInfo->dateCreated:
-            if(count((array)$mods->originInfo->dateCreated) == 3){
-              //why doesn't this print out two dateCreated fields?
-              dpm($mods->xpath('//mods:originInfo/dateCreated/*'));
-              $variables['associated_objects_array'][$pid]['date_created'] = (string) $mods->originInfo->dateCreated[0] . ' - ' . (string) $mods->originInfo->dateCreated[1];
-              dpm('where are my ranged dates?');
-            }
-            //this prints out a good date-range, but the template seems to print out the default case placeholder...
-            dpm((string)$variables['associated_objects_array'][$pid]['date_created']);
-          default:
-            $variables['associated_objects_array'][$pid]['date_created'] = 'PLACEHOLDER_date';
-        }
-
-
-        // We need xpath to get all the subject nodes.
-        // Make them into a link to a solr search.
-        if ($mods->subject){
-          $subjects_xml = $mods->xpath('//mods:subject/*');
-          $subjects_array = array();
-          foreach($subjects_xml as $subject) {
-            // Strip whitespace.
-            $stripped = preg_replace('/\s+/', '', $subject);
-            // Don't return empty strings, after trimming.
-            if ( (string) $stripped != ''){
-              $subjects_array[] = (string) $subject;
-            }
-          }
-          foreach ($subjects_array as $key => $value) {
-            // Not a perfect link solution. mods_display.xsl provides more comprehensive links. This doesn't distinguish between types of solr fields,
-            // Compound subjects ie(Military Camps--Camp Ruston) are not presented as a sigle topic.
-            $variables['associated_objects_array'][$pid]['subjects'][$key] = l($value, "/islandora/search/\"$value\"?type=dismax");
-          }
-        }
-        $variables['associated_objects_array'][$pid]['abstract'] = isset($mods->abstract) ? $mods->abstract : 'PLACEHOLDER_description';
-      }
-      if (in_array('islandora:collectionCModel', $variables['associated_objects_array'][$pid]['object']->models)) {
         // For collection only.
-        $variables['associated_objects_array'][$pid]['note'] = isset($mods->note) ? $mods->note : 'PLACEHOLDER_note';
-        $variables['associated_objects_array'][$pid]['contact'] = isset($mods->name->namePart) ? $mods->name->namePart : 'PLACEHOLDER_contact';
-      }
+        // $variables['associated_objects_array'][$pid]['note'] = isset($mods->note) ? $mods->note : 'PLACEHOLDER_note';
+        // $variables['associated_objects_array'][$pid]['contact'] = isset($mods->name->namePart) ? $mods->name->namePart : 'PLACEHOLDER_contact';
       // Content Stats for collections level stuff
       if (module_exists('islandora_content_stats')) {
 
