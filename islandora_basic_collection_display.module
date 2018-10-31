@@ -26,6 +26,54 @@ function islandora_basic_collection_display_preprocess_islandora_basic_collectio
     $models[] = $original_class;
     $variables['associated_objects_array'][$pid]['class'] = implode(' ', $models);
     if (isset($object['MODS'])) {
+
+      // we could go down this dark and Gnarly path to re-create the meta we want direct from the mods:::
+      //OR....
+      //this could be a much better solution to our problems
+      module_load_include('module', 'islandora_mods_display');
+      $x = islandora_mods_display_display_callback($variables['associated_objects_array'][$pid]['object']);
+      dpm($x);
+      $dom = new DomDocument();
+      $dom->loadHTML($x);
+      dpm($dom);
+      $xpath = new DOMXpath($dom);
+      $el = $xpath->query("//div[contains(@class, 'modsSubject')]");
+      foreach($el as $e){
+        $nodes = $e->childNodes;
+        foreach($nodes as $node){
+          dpm($node->nodeValue);
+        }
+
+        dpm($e->getAttribute('href'));
+        dpm($e->nodeValue);
+      }
+      //dpm($el->saveHTML());
+      // foreach($el as $e) {
+      //   dpm($e->saveHTML());
+      //   // $e->
+      // }
+      // //subjects
+      // $subjects = $xpath->query("//div[@class='metadataValue modsSubject']");
+      // foreach($subjects as $subject){
+      //   dpm($subject->nodeName);
+      //   dpm($subject->nodeValue);
+      //   dpm((array)$subject);
+      // }
+      return;
+      //       foreach($subjects as $element) {
+      //   dpm($element->nodeName);
+      // }
+      //Creator
+      //Date
+      //abstract
+
+      //if collection
+      //abstract
+      //Note
+      //Contact
+
+
+
       $mods_ds = $object['MODS'];
       $mods = simplexml_load_string($mods_ds->content);
 
@@ -58,6 +106,7 @@ function islandora_basic_collection_display_preprocess_islandora_basic_collectio
           default:
             $variables['associated_objects_array'][$pid]['date_created'] = 'PLACEHOLDER_date';
         }
+
 
         // We need xpath to get all the subject nodes.
         // Make them into a link to a solr search.
