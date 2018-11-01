@@ -9,6 +9,16 @@
 ?>
 
 <div class="islandora islandora-basic-collection">
+    <div class='collectionHeader_container'>
+        <div class="collectionHeader image_header">
+          <div class="itemTitle" id="page-title">[Page Title]</div>
+          <div class="headerBreadcrumb">[breadcrumb]</div>
+          <div class="userMenu">
+              <div class="infoToggle userSelect"><div class="iconSelect"></div><div class="textSelect">details</div></div>
+              <div id="shareToggle" class="userSelect"><div class="iconSelect"></div><div class="textSelect">share</div></div>
+          </div>
+        </div>
+    </div>
     <?php $row_field = 0; ?>
     <?php foreach($associated_objects_array as $object): ?>
 
@@ -38,7 +48,7 @@
                   <?php print filter_xss($object['title_link']); ?>
                 <?php endif; ?>
               </div>              
-                <div class='islandora-basic-object-abstract'> <?php print filter_xss($object['abstract']); ?> </div>
+                <div class='islandora-basic-object-abstract list-abstract'> <?php print filter_xss($object['abstract']); ?> </div>
               <?php if(!in_array('islandora:collectionCModel', $object['object']->models)) : ?>
                 <div class='list-subjects'>
                   <?php if (isset($object['subjects'])) : ?>
