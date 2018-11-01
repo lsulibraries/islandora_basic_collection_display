@@ -21,51 +21,59 @@
     </div>
     <?php $row_field = 0; ?>
     <?php foreach($associated_objects_array as $object): ?>
-
       <div class="islandora-basic-collection-object1 islandora-basic-collection-list-item clearfix">
-        <div class="list-item-container <?php print $object['class']; ?>">
-          <?php if(isset($object['stats'])) : ?>
-            <?php foreach($object['stats'] as $cmodel => $value) : ?>
-              <div  class="islandora-basic-collection-content_stats <?php print $cmodel;?>"><?php print "$cmodel: $value"; ?> </div>
+
+      <div class="list-item-container <?php print $object['class']; ?>">
+
+        <div class="list-thumbnail">
+          <?php  (isset($object['thumb_link'])): ?>
+            <?php print $object['thumb_link']; ?>
+            <div class='list-hover'>
+              <div class='islandora-basic-object-date_created'> <?php print filter_xss($object['date_created']); ?></div>
+            </div>
+        </div>
+
+        <!-- collection only -->
+        <?php foreach($object['stats'] as $cmodel => $value) : ?>
+          <div  class="islandora-basic-collection-content_stats <?php print $cmodel;?>"><?php print "$cmodel $value"; ?> </div>
+        <?php endforeach; ?>
+
+        <div class="list-text">
+          <div class="collection-value <?php print isset($object['dc_array']['dc:title']['class']) ? $object['dc_array']['dc:title']['class'] : ''; ?>
+            <?php print $row_field == 0 ? ' first' : ''; ?>">
+            <?php print filter_xss($object['title_link']); ?>
+            <?php print $object['thumb_link']; ?>
+          </div>
+        </div>
+
+        <!-- regular object, not collection  -->
+
+        <!-- date created  -->
+          <div class='islandora-basic-object-date_created'> <?php print $object['date_created']; ?> </div>
+        <!-- subjects -->    
+            <div class='list-subjects'>      
+              <?php foreach ($object['subjects'] as $key => $sub) :?>
+                <div class='islandora-basic-object-<?php print $key; print ' modsSubject' ?>'> <?php print $sub; ?> </div>
+              <?php endforeach; ?>
+            </div>
+        <!-- creator -->
+            <?php foreach ($object['creator'] as $key => $value) : ?>
+              <div class='islandora-basic-collection-creator'> <?php print $value; ?></div>
             <?php endforeach; ?>
-          <?php endif; ?>
-            <div class="list-thumbnail">
-              <?php if (isset($object['thumb_link'])): ?>
-                <?php print $object['thumb_link']; ?>
-                <div class='list-hover'>
-                  <div class='islandora-basic-object-date_created'> <?php print filter_xss($object['date_created']); ?></div>
-                  <?php /* if (isset($object['dc_array']['dc:description']['value'])): ?>
-                    <div class="collection-value <?php print $object['dc_array']['dc:description']['class']; ?>">
-                      <?php print filter_xss($object['dc_array']['dc:description']['value']); ?>
-                    </div>
-                  <?php endif; */ ?>
-                </div>
-              <?php endif; ?>
-            </div>
-            <div class="list-text">
-              <div class="collection-value <?php print isset($object['dc_array']['dc:title']['class']) ? $object['dc_array']['dc:title']['class'] : ''; ?> <?php print $row_field == 0 ? ' first' : ''; ?>">
-                <?php if (isset($object['thumb_link'])): ?>
-                  <?php print filter_xss($object['title_link']); ?>
-                <?php endif; ?>
-              </div>              
-                <div class='islandora-basic-object-abstract list-abstract'> <?php print filter_xss($object['abstract']); ?> </div>
-              <?php if(!in_array('islandora:collectionCModel', $object['object']->models)) : ?>
-                <div class='list-subjects'>
-                  <?php if (isset($object['subjects'])) : ?>
-                    <?php foreach ($object['subjects'] as $key => $sub) :?>
-                      <div class='list-subject islandora-basic-object-<?php print $key; print ' modsSubject' ?>'> <?php print filter_xss($sub); ?> </div>
-                    <?php endforeach; ?>
-                  <?php endif; ?>
-                </div>
-              <?php endif; ?>
-              <?php if(in_array('islandora:collectionCModel', $object['object']->models) && isset($object['object']['MODS'])) : ?>
-                <div class='islandora-basic-collection-abstract'> <?php print filter_xss($object['abstract']); ?> </div>
-                <div class='islandora-basic-collection-note'> <?php print filter_xss($object['note']); ?> </div>
-                <?php if(isset($object['contact'])) : ?>
-                  <div class='islandora-basic-collection-contact'> <?php print filter_xss($object['contact']); ?> </div>
-                <?php endif; ?>
-              <?php endif; ?>
-            </div>
+        <!-- collection and basic object both have this  -->
+          <div class='islandora-basic-object-abstract list-abstract'> <?php print $object['description']; ?> </div>
+          <div class='islandora-basic-object-note'> <?php print $object['note']; ?> </div>
+          <div class='islandora-basic-object-contact'> <?php print $object['contact']; ?> </div>
+         <!-- collection description  -->          
+          <div class="collection-value <?php print $object['dc_array']['dc:description']['class']; ?>">
+            <?php print $object['dc_array']['dc:description']['value']; ?>
+          </div>
+
+        <!-- only if on collection -->
+          <?php foreach($object['stats'] as $cmodel => $value) : ?>
+            <div class="islandora-basic-collection-content_stats <?php print $cmodel;?>"><?php print "$cmodel $value"; ?> </div>
+          <?php endforeach; ?>
+
         </div>
       </div>
     <?php $row_field++; ?>

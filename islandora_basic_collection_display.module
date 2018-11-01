@@ -1,10 +1,23 @@
 <?php
-
 /**
  * @file
  * Contains grid markup, hook_theme_registry_alter and preprocess function.
  * Allows override of all templates in islandora_solution_pack_collection.
  */
+
+function get_two_siblings_metaLabel($elder, $simple_xml_mods){
+  $xpath = $simple_xml_mods->xpath("//div[@class='metadataLabel' and text() = '$elder']");
+  $xpath2 = $simple_xml_mods->xpath("//div[@class='metadataLabel' and text() = '$elder']/following-sibling::div");
+  $return  =  '';
+  foreach ($xpath as $label){
+    $return .= $label->asXML();
+    foreach ($xpath2 as $date) {
+      $return .= $date->asXml();
+    }
+  }
+  return $return;
+}
+
 
 /**
  * Implements hook_preprocess_hook().
@@ -18,6 +31,8 @@ function islandora_basic_collection_display_preprocess_islandora_basic_collectio
     $pid = $result['object']['value'];
     $object = islandora_object_load($pid);
     $models = $object->models;
+
+
     // Unset FedoraObject model.
     $key = array_search('fedora-system:FedoraObject-3.0', $models);
     unset($models[$key]);
@@ -25,75 +40,94 @@ function islandora_basic_collection_display_preprocess_islandora_basic_collectio
     $original_class = $variables['associated_objects_array'][$pid]['class'];
     $models[] = $original_class;
     $variables['associated_objects_array'][$pid]['class'] = implode(' ', $models);
-    if (isset($object['MODS'])) {
-      $mods_ds = $object['MODS'];
-      $mods = simplexml_load_string($mods_ds->content);
-      $variables['associated_objects_array'][$pid]['creator'] = isset($mods->creator) ? $mods->creator : 'PLACEHOLDER_creator';
+    //set all new variables to empty string by default
+    $variables['associated_objects_array'][$pid]['stats'][''] = '';
+    $variables['associated_objects_array'][$pid]['subjects'][''] = '';
+    $variables['associated_objects_array'][$pid]['date_created'] = '';
+    $variables['associated_objects_array'][$pid]['description'] = '';
+    $variables['associated_objects_array'][$pid]['creator'][''] = '';
+    $variables['associated_objects_array'][$pid]['contact'] = '';
+    $variables['associated_objects_array'][$pid]['note'] = '';
 
-      // One or the other date field.
-      if (isset($mods->dateCreated)) {
-        $variables['associated_objects_array'][$pid]['date_created'] = $mods->dateCreated;
-      }
-      elseif (isset($mods->originInfo->dateIssued)) {
-        $variables['associated_objects_array'][$pid]['date_created'] = $mods->originInfo->dateIssued;
+    if (isset($object['MODS'])) {
+
+      module_load_include('module', 'islandora_mods_display');
+      $mods_markup = islandora_mods_display_display_callback($variables['associated_objects_array'][$pid]['object']);
+
+      $dom = new DomDocument();
+      $dom->loadHTML($mods_markup);
+      $simple_mods = simplexml_import_dom($dom);
+
+      if (!in_array('islandora:collectionCModel', $variables['associated_objects_array'][$pid]['object']->models)) {
+        // objects not collections.
+        //Subjects
+        $subjects = $simple_mods->xpath('//div[@class="metadataValue modsSubject"]/a');
+        $return = array();
+        foreach($subjects as $sub) {
+          $return[] = $sub->asXML() ."\n";
+        }
+        $variables['associated_objects_array'][$pid]['subjects'] = $return;
+
+        //Date
+        $return = get_two_siblings_metaLabel("Date Created", $simple_mods);
+        $variables['associated_objects_array'][$pid]['date_created'] = $return;
+
+        //abstract
+        $return = get_two_siblings_metaLabel("Description", $simple_mods);
+        $variables['associated_objects_array'][$pid]['description'] = $return;
+
+        //Creator
+        $return = get_two_siblings_metaLabel("Creator", $simple_mods);
+        $variables['associated_objects_array'][$pid]['creator'][] = $return;
       }
       else {
-        $variables['associated_objects_array'][$pid]['date_created'] = 'PLACEHOLDER_date';
+        //it is a collection
+        $return = get_two_siblings_metaLabel("Abstract", $simple_mods);
+        $variables['associated_objects_array'][$pid]['description'] = $return;
+        $return = get_two_siblings_metaLabel("Note", $simple_mods);
+        $variables['associated_objects_array'][$pid]['note'] = $return;
+        $return = get_two_siblings_metaLabel("Contact", $simple_mods);
+        $variables['associated_objects_array'][$pid]['contact'] = $return;
       }
+      // Content Stats for collections level stuff
+      if (module_exists('islandora_content_stats')) {
 
-      // We need xpath to get all the subject nodes.
-      // Make them into a link to a solr search.
-      if($mods->subject){
-        $subjects_xml = $mods->xpath('//mods:subject/*');
-        $subjects_array = array();
-        foreach($subjects_xml as $subject) {
-          // Strip whitespace.
-          $stripped = preg_replace('/\s+/', '', $subject);
-          // Don't return empty strings, after trimming.
-          if ( (string) $stripped != ''){
-            $subjects_array[] = (string) $subject;
+        module_load_include('inc', 'islandora_content_stats', 'includes/utilities');
+        $last_run = latest_run();
+        $stats = db_query("SELECT * from {islandora_content_stats} where coll = :pid and timestamp = :timestamp ", array(':pid' => $pid, ':timestamp' => $last_run));
+        $results = $stats->fetchAll();
+        $more_than_one = $stats->rowCount() > 1;
+        $none_set = $stats->rowCount() == 0;
+
+
+        // show the stats breakdown. //still needed here bc not all collections have mods
+        if (in_array('islandora:collectionCModel', $variables['associated_objects_array'][$pid]['object']->models)) {
+          if($none_set){
+            $variables['associated_objects_array'][$pid]['stats'][''] = '';
+          }
+          else{
+            $total = 0;
+            foreach($results as $stat) {
+
+              // more than one model exist per collection, provide the item count per model
+              if($more_than_one){
+                $variables['associated_objects_array'][$pid]['stats'][map_cmodels($stat->cmodel) . ':'] = $stat->count;
+              }
+              $total += $stat->count;
+            }
+            $variables['associated_objects_array'][$pid]['stats']['Total items'] = $total;
+            // placehoders for development
+            if(count($variables['associated_objects_array'][$pid]['stats']) <= 1){
+              $variables['associated_objects_array'][$pid]['stats']['Total items'] = '247';
+              $variables['associated_objects_array'][$pid]['stats']['PLACEHODLER_images'] = '20';
+              $variables['associated_objects_array'][$pid]['stats']['PLACEHODLER_pdf'] = '7';
+              $variables['associated_objects_array'][$pid]['stats']['PLACEHODLER_compound'] = '220';
+            }
           }
         }
-        foreach ($subjects_array as $key => $value) {
-          // Not a perfect link solution. mods_display.xsl provides more comprehensive links. This doesn't distinguish between types of solr fields,
-          // Compound subjects ie(Military Camps--Camp Ruston) are not presented as a sigle topic.
-          $variables['associated_objects_array'][$pid]['subjects'][$key] = l($value, "/islandora/search/\"$value\"?type=dismax");
-        }
       }
-      $variables['associated_objects_array'][$pid]['abstract'] = isset($mods->abstract) ? $mods->abstract : 'PLACEHOLDER_description';
-
-      // For collection only.
-      $variables['associated_objects_array'][$pid]['note'] = isset($mods->note) ? $mods->note : 'PLACEHOLDER_note';
-      $variables['associated_objects_array'][$pid]['contact'] = isset($mods->name->namePart) ? $mods->name->namePart : 'PLACEHOLDER_contact';
-
-    }
-
-    // Content Stats for collections level stuff
-    if (module_exists('islandora_content_stats')) {
-
-      module_load_include('inc', 'islandora_content_stats', 'includes/utilities');
-      $last_run = latest_run();
-      $stats = db_query("SELECT * from {islandora_content_stats} where coll = :pid and timestamp = :timestamp ", array(':pid' => $pid, ':timestamp' => $last_run));
-      $results = $stats->fetchAll();
-      $more_than_one = $stats->rowCount() > 1;
-      // show the stats breakdown.
-      if (in_array('islandora:collectionCModel', $variables['associated_objects_array'][$pid]['object']->models)) {
-        $total = 0;
-        foreach($results as $stat) {
-          // more than one model exist per collection, provide the item count per model
-          if($more_than_one){
-            $variables['associated_objects_array'][$pid]['stats'][map_cmodels($stat->cmodel)] = $stat->count;
-          }
-          $total += $stat->count;
-        }
-        $variables['associated_objects_array'][$pid]['stats']['Total items'] = $total;
-        // placehoders for development
-        if(count($variables['associated_objects_array'][$pid]['stats']) <= 1){
-          $variables['associated_objects_array'][$pid]['stats']['Total items'] = '247';
-          $variables['associated_objects_array'][$pid]['stats']['PLACEHODLER_images'] = '20';
-          $variables['associated_objects_array'][$pid]['stats']['PLACEHODLER_pdf'] = '7';
-          $variables['associated_objects_array'][$pid]['stats']['PLACEHODLER_compound'] = '220';
-        }
+      else {
+        $variables['associated_objects_array'][$pid]['stats'][''] = '';
       }
     }
   }
@@ -105,6 +139,8 @@ function islandora_basic_collection_display_preprocess_islandora_basic_collectio
     $pid = $result['object']['value'];
     $object = islandora_object_load($pid);
     $models = $object->models;
+
+
     // Unset FedoraObject model.
     $key = array_search('fedora-system:FedoraObject-3.0', $models);
     unset($models[$key]);
@@ -112,72 +148,82 @@ function islandora_basic_collection_display_preprocess_islandora_basic_collectio
     $original_class = $variables['associated_objects_array'][$pid]['class'];
     $models[] = $original_class;
     $variables['associated_objects_array'][$pid]['class'] = implode(' ', $models);
+    //mods is not required to add content stats
+    $variables['associated_objects_array'][$pid]['subjects'][''] = '';
+    $variables['associated_objects_array'][$pid]['date_created'] = '';
+    $variables['associated_objects_array'][$pid]['stats'][''] = '';
+    $variables['associated_objects_array'][$pid]['description'] = '';
+    $variables['associated_objects_array'][$pid]['creator'][''] = '';
+    $variables['associated_objects_array'][$pid]['contact'] = '';
+    $variables['associated_objects_array'][$pid]['note'] = '';
     if (isset($object['MODS'])) {
-      $mods_ds = $object['MODS'];
-      $mods = simplexml_load_string($mods_ds->content);
-      $variables['associated_objects_array'][$pid]['creator'] = isset($mods->creator) ? $mods->creator : 'PLACEHOLDER_creator';
+      // set new vars as empty by default
 
-      // One or the other date field.
-      if (isset($mods->dateCreated)) {
-        $variables['associated_objects_array'][$pid]['date_created'] = $mods->dateCreated;
-      }
-      elseif (isset($mods->originInfo->dateIssued)) {
-        $variables['associated_objects_array'][$pid]['date_created'] = $mods->originInfo->dateIssued;
+
+      module_load_include('module', 'islandora_mods_display');
+      $mods_markup = islandora_mods_display_display_callback($variables['associated_objects_array'][$pid]['object']);
+
+      $dom = new DomDocument();
+      $dom->loadHTML($mods_markup);
+      $simple_mods = simplexml_import_dom($dom);
+
+      if (!in_array('islandora:collectionCModel', $variables['associated_objects_array'][$pid]['object']->models)) {
+        // objects not collections.
+        //Subjects
+        $subjects = $simple_mods->xpath('//div[@class="metadataValue modsSubject"]/a');
+        $return = array();
+        foreach($subjects as $sub) {
+          $return[] = $sub->asXML() ."\n";
+        }
+        $variables['associated_objects_array'][$pid]['subjects'] = $return;
+
+        //Date
+        $return = get_two_siblings_metaLabel("Date Created", $simple_mods);
+        $variables['associated_objects_array'][$pid]['date_created'] = $return;
+
+        //abstract
+        $return = get_two_siblings_metaLabel("Description", $simple_mods);
+        $variables['associated_objects_array'][$pid]['description'] = $return;
+
+        //Creator
+        $return = get_two_siblings_metaLabel("Creator", $simple_mods);
+        $variables['associated_objects_array'][$pid]['creator'][] = $return;
       }
       else {
-        $variables['associated_objects_array'][$pid]['date_created'] = 'PLACEHOLDER_date';
+        //it is a collection
+        $return = get_two_siblings_metaLabel("Abstract", $simple_mods);
+        $variables['associated_objects_array'][$pid]['description'] = $return;
+        $return = get_two_siblings_metaLabel("Note", $simple_mods);
+        $variables['associated_objects_array'][$pid]['note'] = $return;
+        $return = get_two_siblings_metaLabel("Contact", $simple_mods);
+        $variables['associated_objects_array'][$pid]['contact'] = $return;
       }
+      // Content Stats for collections level stuff
+      if (module_exists('islandora_content_stats')) {
 
-      // We need xpath to get all the subject nodes.
-      // Make them into a link to a solr search.
-      $subjects_xml = $mods->xpath('//mods:subject/*');
-      $subjects_array = array();
-      foreach($subjects_xml as $subject) {
-        // Strip whitespace.
-        $stripped = preg_replace('/\s+/', '', $subject);
-        // Don't return empty strings, after trimming.
-        if ( (string) $stripped != ''){
-          $subjects_array[] = (string) $subject;
-        }
-      }
-      foreach ($subjects_array as $key => $value) {
-        // Not a perfect link solution. mods_display.xsl provides more comprehensive links. This doesn't distinguish between types of solr fields,
-        // Compound subjects ie(Military Camps--Camp Ruston) are not presented as a sigle topic.
-        $variables['associated_objects_array'][$pid]['subjects'][$key] = l($value, "/islandora/search/\"$value\"?type=dismax");
-      }
-      $variables['associated_objects_array'][$pid]['abstract'] = isset($mods->abstract) ? $mods->abstract : 'PLACEHOLDER_description';
-
-      // For collection only.
-      $variables['associated_objects_array'][$pid]['note'] = isset($mods->note) ? $mods->note : 'PLACEHOLDER_note';
-      $variables['associated_objects_array'][$pid]['contact'] = isset($mods->name->namePart) ? $mods->name->namePart : 'PLACEHOLDER_contact';
-
-    }
-
-    // Content Stats for collections level stuff
-    if (module_exists('islandora_content_stats')) {
-
-      module_load_include('inc', 'islandora_content_stats', 'includes/utilities');
-      $last_run = latest_run();
-      $stats = db_query("SELECT * from {islandora_content_stats} where coll = :pid and timestamp = :timestamp ", array(':pid' => $pid, ':timestamp' => $last_run));
-      $results = $stats->fetchAll();
-      $more_than_one = $stats->rowCount() > 1;
-      // show the stats breakdown.
-      if (in_array('islandora:collectionCModel', $variables['associated_objects_array'][$pid]['object']->models)) {
-        $total = 0;
-        foreach($results as $stat) {
-          // more than one model exist per collection, provide the item count per model
-          if($more_than_one){
-            $variables['associated_objects_array'][$pid]['stats'][map_cmodels($stat->cmodel)] = $stat->count;
+        module_load_include('inc', 'islandora_content_stats', 'includes/utilities');
+        $last_run = latest_run();
+        $stats = db_query("SELECT * from {islandora_content_stats} where coll = :pid and timestamp = :timestamp ", array(':pid' => $pid, ':timestamp' => $last_run));
+        $results = $stats->fetchAll();
+        $more_than_one = $stats->rowCount() > 1;
+        // show the stats breakdown.
+        if (in_array('islandora:collectionCModel', $variables['associated_objects_array'][$pid]['object']->models)) {
+          $total = 0;
+          foreach($results as $stat) {
+            // more than one model exist per collection, provide the item count per model
+            if($more_than_one){
+              $variables['associated_objects_array'][$pid]['stats'][map_cmodels($stat->cmodel)] = $stat->count;
+            }
+            $total += $stat->count;
           }
-          $total += $stat->count;
-        }
-        $variables['associated_objects_array'][$pid]['stats']['Total items'] = $total;
-        // placehoders for development
-        if(count($variables['associated_objects_array'][$pid]['stats']) <= 1){
-          $variables['associated_objects_array'][$pid]['stats']['Total items'] = '247';
-          $variables['associated_objects_array'][$pid]['stats']['PLACEHODLER_images'] = '20';
-          $variables['associated_objects_array'][$pid]['stats']['PLACEHODLER_pdf'] = '7';
-          $variables['associated_objects_array'][$pid]['stats']['PLACEHODLER_compound'] = '220';
+          $variables['associated_objects_array'][$pid]['stats']['Total items'] = $total;
+          // placehoders for development
+          if(count($variables['associated_objects_array'][$pid]['stats']) <= 1){
+            $variables['associated_objects_array'][$pid]['stats']['Total items'] = '247';
+            $variables['associated_objects_array'][$pid]['stats']['PLACEHODLER_images'] = '20';
+            $variables['associated_objects_array'][$pid]['stats']['PLACEHODLER_pdf'] = '7';
+            $variables['associated_objects_array'][$pid]['stats']['PLACEHODLER_compound'] = '220';
+          }
         }
       }
     }
@@ -193,6 +239,33 @@ function islandora_basic_collection_display_preprocess_islandora_basic_collectio
   //page_number starts at 0...
   $pagenot_one = $page_num >= 1;
   $variables['current'] = ($pagenot_one) ? $page_size * $page_num + count($results) : count($results);
+  // Content Stats for collections level stuff
+  if (module_exists('islandora_content_stats')) {
+    //empty placeholder if coll has no collection policy
+    $variables['stats'][''] = '';
+    module_load_include('inc', 'islandora_content_stats', 'includes/utilities');
+    $last_run = latest_run();
+    $stats = db_query("SELECT * from {islandora_content_stats} where coll = :pid and timestamp = :timestamp ", array(':pid' => $islandora_object->id, ':timestamp' => $last_run));
+    $results = $stats->fetchAll();
+    $more_than_one = $stats->rowCount() > 1;
+    // show the stats breakdown.
+    $total = 0;
+    foreach($results as $stat) {
+      // more than one model exist per collection, provide the item count per model
+      if($more_than_one){
+        $variables['stats'][map_cmodels($stat->cmodel)] = $stat->count;
+      }
+      $total += $stat->count;
+      $variables['stats']['Total items'] = $total;
+      // placehoders for development
+      if(count($variables['stats']) <= 1){
+        $variables['stats']['Total items'] = '247';
+        $variables['stats']['PLACEHODLER_images'] = '20';
+        $variables['stats']['PLACEHODLER_pdf'] = '7';
+        $variables['stats']['PLACEHODLER_compound'] = '220';
+      }
+    }
+  }
 }
 
 /**

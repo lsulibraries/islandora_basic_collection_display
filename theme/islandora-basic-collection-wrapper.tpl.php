@@ -16,9 +16,14 @@
     <hr />
   <?php endif; ?>
   <div class="islandora-basic-collection clearfix">
+
+      <?php foreach($variables['stats'] as $cmodel => $value) : ?>
+        <div  class="islandora-basic-collection-content_stats <?php print $cmodel;?>"><?php print "$cmodel $value"; ?> </div>
+      <?php endforeach; ?>
+
     <span class="islandora-basic-collection-display-switch">
       <ul class="links inline">
-          <li><span class="islandora-basic-collection-item-count"><?php print $variables['current']; print " of $total_count items"?></span></li>
+          <li><span class="islandora-basic-collection-item-count"><?php print "Items " . $variables['current']; print " - $total_count"?></span></li>
         <?php foreach ($view_links as $link): ?>
           <li>
             <a <?php print drupal_attributes($link['attributes']) ?>><?php print filter_xss($link['title']) ?></a>
