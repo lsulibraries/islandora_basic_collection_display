@@ -26,7 +26,6 @@
       <div class="list-item-container <?php print $object['class']; ?>">
 
         <div class="list-thumbnail">
-          <?php  (isset($object['thumb_link'])): ?>
             <?php print $object['thumb_link']; ?>
             <div class='list-hover'>
               <div class='islandora-basic-object-date_created'> <?php print filter_xss($object['date_created']); ?></div>
