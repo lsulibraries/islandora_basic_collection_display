@@ -16,11 +16,11 @@
     <hr />
   <?php endif; ?>
   <div class="islandora-basic-collection clearfix">
-    <?php if(isset($variables['stats'])) : ?>
+
       <?php foreach($variables['stats'] as $cmodel => $value) : ?>
-        <div  class="islandora-basic-collection-content_stats <?php print $cmodel;?>"><?php print "$cmodel: $value"; ?> </div>
+        <div  class="islandora-basic-collection-content_stats <?php print $cmodel;?>"><?php print "$cmodel $value"; ?> </div>
       <?php endforeach; ?>
-    <?php endif; ?>
+
     <span class="islandora-basic-collection-display-switch">
       <ul class="links inline">
           <li><span class="islandora-basic-collection-item-count"><?php print "Items " . $variables['current']; print " - $total_count"?></span></li>

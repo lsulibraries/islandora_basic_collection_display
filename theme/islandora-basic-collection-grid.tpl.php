@@ -33,37 +33,25 @@
         <div class='islandora-basic-collection-thumb'><?php print $object['thumb_link']; ?> </div>
 
         <!-- regular object not collection  -->
-          <?php if(isset($object['date_created'])) : ?>
             <!-- where are my ranged dates?  -->
               <div class='islandora-basic-object-date_created'> <?php print $object['date_created'] ?></div>
-          <?php endif; ?>
-          <?php if (isset($object['subjects'])) : ?>
             <?php foreach ($object['subjects'] as $key => $sub) :?>
               <div class='islandora-basic-object-<?php print $key; print ' modsSubject' ?>'> <?php print $sub; ?> </div>
             <?php endforeach; ?>
-            <?php if (isset($object['creator'])) : ?>
-                <div class='islandora-basic-collection-creator'> <?php print $object['creator']; ?> </div>
-            <?php endif ;?>
-          <?php endif; ?>
+            <?php foreach ($object['creator'] as $key => $value) : ?>
+              <div class='islandora-basic-collection-creator'> <?php print $value; ?></div>
+            <?php endforeach; ?>
 
 
           <!-- only if on collection -->
-          <?php if(isset($object['stats'])) : ?>
             <?php foreach($object['stats'] as $cmodel => $value) : ?>
-              <div  class="islandora-basic-collection-content_stats <?php print $cmodel;?>"><?php print "$cmodel: $value"; ?> </div>
+              <div  class="islandora-basic-collection-content_stats <?php print $cmodel;?>"><?php print "$cmodel $value"; ?> </div>
             <?php endforeach; ?>
-          <?php endif; ?>
 
           <!-- collection and basic object both have this  -->
-          <?php if (isset($object['abstract'])) : ?>
-            <div class='islandora-basic-object-abstract'> <?php print $object['abstract']; ?> </div>
-          <?php endif; ?>
-          <?php if (isset($object['note'])) : ?>
+            <div class='islandora-basic-object-abstract'> <?php print $object['description']; ?> </div>
             <div class='islandora-basic-object-note'> <?php print $object['note']; ?> </div>
-          <?php endif; ?>
-          <?php if(isset($object['contact'])) : ?>
             <div class='islandora-basic-object-contact'> <?php print $object['contact']; ?> </div>
-          <?php endif; ?>
 
 
       </div>
