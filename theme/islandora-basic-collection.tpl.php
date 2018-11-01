@@ -24,12 +24,31 @@
       <div class="islandora-basic-collection-object1 islandora-basic-collection-list-item clearfix">
 
       <div class="list-item-container <?php print $object['class']; ?>">
-
         <div class="list-thumbnail">
-            <?php print $object['thumb_link']; ?>
-            <div class='list-hover'>
-              <div class='islandora-basic-object-date_created'> <?php print filter_xss($object['date_created']); ?></div>
-            </div>
+          <?php print $object['thumb_link']; ?>
+          <div class='list-hover'>
+            <!-- creator -->
+            <?php foreach ($object['creator'] as $key => $value) : ?>
+              <div class='islandora-basic-collection-creator'> <?php print $value; ?></div>
+            <?php endforeach; ?>            
+            <div class='islandora-basic-object-date_created'> <?php print $object['date_created']; ?> </div>
+          </div>
+        </div>
+        <div class="list-text">
+          <!-- title -->    
+          <div class="collection-value <?php print isset($object['dc_array']['dc:title']['class']) ? $object['dc_array']['dc:title']['class'] : ''; ?>
+            <?php print $row_field == 0 ? ' first' : ''; ?>">
+            <?php print filter_xss($object['title_link']); ?>
+          </div>
+          <!-- description -->
+          <div class='islandora-basic-object-abstract list-abstract'> <?php print $object['description']; ?> </div>
+          <!-- subjects -->    
+          <div class='list-subjects'>      
+            <?php foreach ($object['subjects'] as $key => $sub) :?>
+              <div class='list-subject islandora-basic-object-<?php print $key; print ' modsSubject' ?>'> <?php print filter_xss($sub); ?> </div>
+            <?php endforeach; ?>
+          </div>
+
         </div>
 
         <!-- collection only -->
@@ -37,36 +56,13 @@
           <div  class="islandora-basic-collection-content_stats <?php print $cmodel;?>"><?php print "$cmodel $value"; ?> </div>
         <?php endforeach; ?>
 
-        <div class="list-text">
-          <div class="collection-value <?php print isset($object['dc_array']['dc:title']['class']) ? $object['dc_array']['dc:title']['class'] : ''; ?>
-            <?php print $row_field == 0 ? ' first' : ''; ?>">
-            <?php print filter_xss($object['title_link']); ?>
-            <?php print $object['thumb_link']; ?>
-          </div>
-        </div>
-
-        <!-- regular object, not collection  -->
-
-        <!-- date created  -->
-          <div class='islandora-basic-object-date_created'> <?php print $object['date_created']; ?> </div>
-        <!-- subjects -->    
-            <div class='list-subjects'>      
-              <?php foreach ($object['subjects'] as $key => $sub) :?>
-                <div class='islandora-basic-object-<?php print $key; print ' modsSubject' ?>'> <?php print $sub; ?> </div>
-              <?php endforeach; ?>
-            </div>
-        <!-- creator -->
-            <?php foreach ($object['creator'] as $key => $value) : ?>
-              <div class='islandora-basic-collection-creator'> <?php print $value; ?></div>
-            <?php endforeach; ?>
         <!-- collection and basic object both have this  -->
-          <div class='islandora-basic-object-abstract list-abstract'> <?php print $object['description']; ?> </div>
           <div class='islandora-basic-object-note'> <?php print $object['note']; ?> </div>
           <div class='islandora-basic-object-contact'> <?php print $object['contact']; ?> </div>
-         <!-- collection description  -->          
-          <div class="collection-value <?php print $object['dc_array']['dc:description']['class']; ?>">
-            <?php print $object['dc_array']['dc:description']['value']; ?>
-          </div>
+         <!-- collection description  
+          <div class="collection-value <?php /* print $object['dc_array']['dc:description']['class']; */ ?>">
+            <? /* php print $object['dc_array']['dc:description']['value']; */ ?>
+          </div> -->         
 
         <!-- only if on collection -->
           <?php foreach($object['stats'] as $cmodel => $value) : ?>
