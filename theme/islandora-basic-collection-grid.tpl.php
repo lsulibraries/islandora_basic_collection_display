@@ -43,17 +43,14 @@
             <?php endforeach; ?>
 
 
-          <!-- only if on collection -->
-            <?php foreach($object['stats'] as $cmodel => $value) : ?>
-              <div  class="islandora-basic-collection-content_stats <?php print $cmodel;?>"><?php print "$cmodel $value"; ?> </div>
-            <?php endforeach; ?>
-
-          <!-- collection and basic object both have this 
-            <div class='islandora-basic-object-abstract'> <?php /*print $object['description']; ?> </div>
+          <div class='sidebar-content'>
+            <div class='islandora-basic-object-abstract'> <?php print $object['description']; ?> </div>
             <div class='islandora-basic-object-note'> <?php print $object['note']; ?> </div>
-            <div class='islandora-basic-object-contact'> <?php print $object['contact']; */ ?> </div> -->
-
-
+            <div class='islandora-basic-object-contact'> <?php print $object['contact'];  ?> </div>             
+            <?php foreach($object['stats'] as $cmodel => $value) : ?>
+              <div class="islandora-basic-collection-content_stats <?php print $cmodel;?>"><?php print "$cmodel $value"; ?> </div>
+            <?php endforeach; ?>
+          </div>
       </div>
     <?php endforeach; ?>
 </div>

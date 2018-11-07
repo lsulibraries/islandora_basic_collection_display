@@ -45,7 +45,7 @@
           <!-- subjects -->    
           <div class='list-subjects'>      
             <?php foreach ($object['subjects'] as $key => $sub) :?>
-              <div class='list-subject islandora-basic-object-<?php print $key; print ' modsSubject' ?>'> <?php print filter_xss($sub); ?> </div>
+              <div class='list-subject islandora-basic-object-<?php print $key; print ' modsSubject' ?>'> <?php print $sub; ?> </div>
             <?php endforeach; ?>
           </div>
 
