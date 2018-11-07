@@ -23,7 +23,7 @@
 
     <span class="islandora-basic-collection-display-switch">
       <ul class="links inline">
-          <li><span class="islandora-basic-collection-item-count"><?php print "Items " . $variables['current']; print " - $total_count"?></span></li>
+          <li><span class="islandora-basic-collection-item-count"><?php print "Items " . $variables['item_count']['start'] . ' - ' . $variables['item_count']['through']; print " of $total_count"?></span></li>
         <?php foreach ($view_links as $link): ?>
           <li>
             <a <?php print drupal_attributes($link['attributes']) ?>><?php print filter_xss($link['title']) ?></a>
