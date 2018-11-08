@@ -54,40 +54,46 @@ function islandora_basic_collection_display_preprocess_islandora_basic_collectio
       module_load_include('module', 'islandora_mods_display');
       $mods_markup = islandora_mods_display_display_callback($variables['associated_objects_array'][$pid]['object']);
 
-      $dom = new DomDocument();
-      $dom->loadHTML($mods_markup);
-      $simple_mods = simplexml_import_dom($dom);
+      if (module_exists('islandora_ip_embargo')) {
+        module_load_include('inc', 'islandora_ip_embargo', 'includes/utilities');
+        $accessible = islandora_ip_embargo_get_public_datastreams($pid);
+        if (in_array('MODS', $accessible)) {
+          $dom = new DomDocument();
+          $dom->loadHTML($mods_markup);
+          $simple_mods = simplexml_import_dom($dom);
 
-      if (!in_array('islandora:collectionCModel', $variables['associated_objects_array'][$pid]['object']->models)) {
-        // objects not collections.
-        //Subjects
-        $subjects = $simple_mods->xpath('//div[@class="metadataValue modsSubject"]/a');
-        $return = array();
-        foreach($subjects as $sub) {
-          $return[] = $sub->asXML() ."\n";
+          if (!in_array('islandora:collectionCModel', $variables['associated_objects_array'][$pid]['object']->models)) {
+            // objects not collections.
+            //Subjects
+            $subjects = $simple_mods->xpath('//div[@class="metadataValue modsSubject"]/a');
+            $return = array();
+            foreach($subjects as $sub) {
+              $return[] = $sub->asXML() ."\n";
+            }
+            $variables['associated_objects_array'][$pid]['subjects'] = $return;
+
+            //Date
+            $return = get_two_siblings_metaLabel("Date Created", $simple_mods);
+            $variables['associated_objects_array'][$pid]['date_created'] = $return;
+
+            //abstract
+            $return = get_two_siblings_metaLabel("Description", $simple_mods);
+            $variables['associated_objects_array'][$pid]['description'] = $return;
+
+            //Creator
+            $return = get_two_siblings_metaLabel("Creator", $simple_mods);
+            $variables['associated_objects_array'][$pid]['creator'][] = $return;
+          }
+          else {
+            //it is a collection
+            $return = get_two_siblings_metaLabel("Abstract", $simple_mods);
+            $variables['associated_objects_array'][$pid]['description'] = $return;
+            $return = get_two_siblings_metaLabel("Note", $simple_mods);
+            $variables['associated_objects_array'][$pid]['note'] = $return;
+            $return = get_two_siblings_metaLabel("Contact", $simple_mods);
+            $variables['associated_objects_array'][$pid]['contact'] = $return;
+          }
         }
-        $variables['associated_objects_array'][$pid]['subjects'] = $return;
-
-        //Date
-        $return = get_two_siblings_metaLabel("Date Created", $simple_mods);
-        $variables['associated_objects_array'][$pid]['date_created'] = $return;
-
-        //abstract
-        $return = get_two_siblings_metaLabel("Description", $simple_mods);
-        $variables['associated_objects_array'][$pid]['description'] = $return;
-
-        //Creator
-        $return = get_two_siblings_metaLabel("Creator", $simple_mods);
-        $variables['associated_objects_array'][$pid]['creator'][] = $return;
-      }
-      else {
-        //it is a collection
-        $return = get_two_siblings_metaLabel("Abstract", $simple_mods);
-        $variables['associated_objects_array'][$pid]['description'] = $return;
-        $return = get_two_siblings_metaLabel("Note", $simple_mods);
-        $variables['associated_objects_array'][$pid]['note'] = $return;
-        $return = get_two_siblings_metaLabel("Contact", $simple_mods);
-        $variables['associated_objects_array'][$pid]['contact'] = $return;
       }
       // Content Stats for collections level stuff
       if (module_exists('islandora_content_stats')) {
