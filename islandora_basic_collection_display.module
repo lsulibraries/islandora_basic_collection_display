@@ -6,16 +6,18 @@
  */
 
 function get_two_siblings_metaLabel($elder, $simple_xml_mods){
-  $xpath = $simple_xml_mods->xpath("//div[@class='metadataLabel' and text() = '$elder']");
-  $xpath2 = $simple_xml_mods->xpath("//div[@class='metadataLabel' and text() = '$elder']/following-sibling::div");
-  $return  =  '';
-  foreach ($xpath as $label){
-    $return .= $label->asXML();
-    foreach ($xpath2 as $date) {
-      $return .= $date->asXml();
+  if (isset($simple_xml_mods)) {
+    $xpath = $simple_xml_mods->xpath("//div[@class='metadataLabel' and text() = '$elder']");
+    $xpath2 = $simple_xml_mods->xpath("//div[@class='metadataLabel' and text() = '$elder']/following-sibling::div");
+    $return  =  '';
+    foreach ($xpath as $label){
+      $return .= $label->asXML();
+      foreach ($xpath2 as $date) {
+        $return .= $date->asXml();
+      }
     }
+    return $return;
   }
-  return $return;
 }
 
 
@@ -50,14 +52,14 @@ function islandora_basic_collection_display_preprocess_islandora_basic_collectio
     $variables['associated_objects_array'][$pid]['note'] = '';
 
     if (isset($object['MODS'])) {
-
       module_load_include('module', 'islandora_mods_display');
       $mods_markup = islandora_mods_display_display_callback($variables['associated_objects_array'][$pid]['object']);
 
       $dom = new DomDocument();
-      $dom->loadHTML($mods_markup);
-      $simple_mods = simplexml_import_dom($dom);
-
+      if (isset($mods_markup)) { 
+        $dom->loadHTML($mods_markup);
+        $simple_mods = simplexml_import_dom($dom);
+      }
       if (!in_array('islandora:collectionCModel', $variables['associated_objects_array'][$pid]['object']->models)) {
         // objects not collections.
         //Subjects
