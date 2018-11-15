@@ -243,9 +243,9 @@ function islandora_basic_collection_display_preprocess_islandora_basic_collectio
   $variables['item_count']['start'] = (!$pagenot_first) ? 1 : $page_size * $page_num + 1;
   $variables['item_count']['through'] = ($pagenot_first) ? $page_size * $page_num + count($results) : count($results);
   // Content Stats for collections level stuff
+  //empty placeholder if coll has no collection policy or coll level stats isn't ready
+  $variables['stats'][''] = '';
   if (module_exists('islandora_content_stats')) {
-    //empty placeholder if coll has no collection policy
-    $variables['stats'][''] = '';
     module_load_include('inc', 'islandora_content_stats', 'includes/utilities');
     $last_run = latest_run();
     $stats = db_query("SELECT * from {islandora_content_stats} where coll = :pid and timestamp = :timestamp ", array(':pid' => $islandora_object->id, ':timestamp' => $last_run));
