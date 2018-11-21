@@ -31,7 +31,7 @@
 
         <div class='islandora-basic-collection-caption'> <?php print filter_xss($object['title_link']); ?> </div>
         <div class='islandora-basic-collection-thumb'><?php print $object['thumb_link']; ?> </div>
-
+        <div class='islandora-basic-collection-meta'>
         <!-- regular object not collection  -->
             <!-- where are my ranged dates?  -->
               <div class='islandora-basic-object-date_created'> <?php print $object['date_created'] ?></div>
@@ -52,7 +52,7 @@
             <div class='islandora-basic-object-abstract'> <?php print $object['description']; ?> </div>
             <div class='islandora-basic-object-note'> <?php print $object['note']; ?> </div>
             <div class='islandora-basic-object-contact'> <?php print $object['contact']; ?> </div>
-
+        </div>
 
       </div>
     <?php endforeach; ?>
