@@ -18,7 +18,7 @@
 <div class="islandora islandora-basic-collections helloKyle">
   <div class="islandora-basic-collection-grid clearfix">
     <div class='collectionHeader masonryItem image_header'>
-        <div class="itemTitle" id="page-title">[Page Title]</div>
+        <div class="itemTitle" id="page-title"></div>
         <div class="headerBreadcrumb">[breadcrumb]</div>
         <div class="userMenu">
             <div class="infoToggle userSelect"><div class="iconSelect"></div><div class="textSelect">details</div></div>

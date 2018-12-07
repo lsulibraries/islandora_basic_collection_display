@@ -11,7 +11,7 @@
 <div class="islandora islandora-basic-collection">
     <div class='collectionHeader_container'>
         <div class="collectionHeader image_header">
-          <div class="itemTitle" id="page-title">[Page Title]</div>
+          <div class="itemTitle" id="page-title"></div>
           <div class="headerBreadcrumb">[breadcrumb]</div>
           <div class="userMenu">
               <div class="infoToggle userSelect"><div class="iconSelect"></div><div class="textSelect">details</div></div>
