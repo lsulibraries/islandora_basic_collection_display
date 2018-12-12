@@ -79,7 +79,7 @@ function islandora_basic_collection_display_preprocess_islandora_basic_collectio
         $variables['associated_objects_array'][$pid]['description'] = $return;
 
         //Creator
-        $return = get_twos_faiblings_metaLabel("Creator", $simple_mods);
+        $return = get_two_siblings_metaLabel("Creator", $simple_mods);
         $variables['associated_objects_array'][$pid]['creator'][] = $return;
       }
       else {
