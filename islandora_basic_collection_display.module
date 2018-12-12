@@ -11,7 +11,7 @@ function get_two_siblings_metaLabel($elder, $simple_xml_mods){
     $xpath2 = $simple_xml_mods->xpath("//div[@class='metadataLabel' and text() = '$elder']/following-sibling::div");
     $return  =  '';
     foreach ($xpath as $label){
-      $return .= $label->asXML();
+      //$return .= $label->asXML();
       foreach ($xpath2 as $date) {
         $return .= $date->asXml();
       }
@@ -79,7 +79,7 @@ function islandora_basic_collection_display_preprocess_islandora_basic_collectio
         $variables['associated_objects_array'][$pid]['description'] = $return;
 
         //Creator
-        $return = get_two_siblings_metaLabel("Creator", $simple_mods);
+        $return = get_twos_faiblings_metaLabel("Creator", $simple_mods);
         $variables['associated_objects_array'][$pid]['creator'][] = $return;
       }
       else {
