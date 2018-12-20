@@ -19,6 +19,8 @@
           </div>
         </div>
     </div>
+          <div class="loadingMessage"> <div class="lds-ring"><div></div><div></div><div></div><div></div></div> Loading </div>
+
     <?php $row_field = 0; ?>
     <?php foreach($associated_objects_array as $object): ?>
       <div class="islandora-basic-collection-object1 islandora-basic-collection-list-item clearfix">

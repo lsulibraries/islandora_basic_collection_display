@@ -25,6 +25,9 @@
             <div id="shareToggle" class="userSelect"><div class="iconSelect"></div><div class="textSelect">share</div></div>
         </div>
     </div>
+          <div class="loadingMessage"> <div class="lds-ring"><div></div><div></div><div></div><div></div></div> Loading </div>
+
+    
     <?php foreach ($variables['associated_objects_array'] as $object) : ?>
       <div class='islandora-basic-collection-object masonryItem <?php print $object['class']; ?>'>
 
