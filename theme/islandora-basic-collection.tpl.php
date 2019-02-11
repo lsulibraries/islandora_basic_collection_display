@@ -12,7 +12,7 @@
     <div class='collectionHeader_container'>
         <div class="collectionHeader image_header">
           <div class="itemTitle" id="page-title"></div>
-          <div class="headerBreadcrumb">[breadcrumb]</div>
+          <div class="headerBreadcrumb"><a href="/">LDL</a> / &nbsp;</div>
           <div class="userMenu">
               <div class="infoToggle userSelect"><div class="iconSelect"></div><div class="textSelect">details</div></div>
               <div id="shareToggle" class="userSelect"><div class="iconSelect"></div><div class="textSelect">share</div></div>
@@ -29,19 +29,14 @@
 
         <div class="list-thumbnail">
             <?php print $object['thumb_link']; ?>
-            <div class='list-hover'>
-              <div class='islandora-basic-object-date_created'> <?php print filter_xss($object['date_created']); ?></div>
-            </div>
+             <div class="itemHover"><div class="dateHover"><?php print filter_xss($object['date_created']); ?></div><div class="typeHover"></div></div>
+
         </div>
 
         <!-- collection only -->
         <?php foreach($object['stats'] as $cmodel => $value) : ?>
           <div  class="islandora-basic-collection-content_stats <?php print $cmodel;?>"><?php print "$cmodel $value"; ?> </div>
         <?php endforeach; ?>
-
-        <div class="list-text">
-
-        </div>
 
         <!-- regular object, not collection  -->
         <div class="list-metadata">
@@ -56,8 +51,6 @@
             <?php endforeach; ?>
           </div>          
         </div>
-        <!-- date created  -->
-          <div class='islandora-basic-object-date_created'> <?php print $object['date_created']; ?> </div>
 
         <!-- subjects -->    
 

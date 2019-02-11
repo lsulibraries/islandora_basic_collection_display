@@ -19,7 +19,7 @@
   <div class="islandora-basic-collection-grid clearfix">
     <div class='collectionHeader masonryItem image_header'>
         <div class="itemTitle" id="page-title"></div>
-        <div class="headerBreadcrumb"><a href="/">LDL</a> / </div>
+        <div class="headerBreadcrumb"><a href="/">LDL</a> / &nbsp;</div>
         <div class="userMenu">
             <div class="infoToggle userSelect"><div class="iconSelect"></div><div class="textSelect">details</div></div>
             <div id="shareToggle" class="userSelect"><div class="iconSelect"></div><div class="textSelect">share</div></div>
@@ -56,6 +56,7 @@
             <div class='islandora-basic-object-note'> <?php print $object['note']; ?> </div>
             <div class='islandora-basic-object-contact'> <?php print $object['contact']; ?> </div>
         </div>
+        <div class="itemHover"><div class="dateHover"><?php print $object['date_created']; ?></div><div class="typeHover"></div></div>
 
       </div>
     <?php endforeach; ?>
