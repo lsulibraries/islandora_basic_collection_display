@@ -51,14 +51,16 @@ function islandora_basic_collection_display_preprocess_islandora_basic_collectio
     $variables['associated_objects_array'][$pid]['contact'] = '';
     $variables['associated_objects_array'][$pid]['note'] = '';
 
-    if (isset($object['MODS'])) {
+    if (isset($object['MODS'])) { 
       module_load_include('module', 'islandora_mods_display');
       $mods_markup = islandora_mods_display_display_callback($variables['associated_objects_array'][$pid]['object']);
-
       $dom = new DomDocument();
-      if (isset($mods_markup)) { 
+      if (isset($mods_markup) && strlen($mods_markup) > 1) { 
         $dom->loadHTML($mods_markup);
         $simple_mods = simplexml_import_dom($dom);
+      }
+      else {
+        $simple_mods = '';
       }
       if (!in_array('islandora:collectionCModel', $variables['associated_objects_array'][$pid]['object']->models)) {
         // objects not collections.
@@ -84,11 +86,11 @@ function islandora_basic_collection_display_preprocess_islandora_basic_collectio
       }
       else {
         //it is a collection
-        $return = get_two_siblings_metaLabel("Abstract", $simple_mods);
+        $return = $simple_mods ? get_two_siblings_metaLabel("Abstract", $simple_mods): '';
         $variables['associated_objects_array'][$pid]['description'] = $return;
-        $return = get_two_siblings_metaLabel("Note", $simple_mods);
+        $return = $simple_mods ? get_two_siblings_metaLabel("Note", $simple_mods) : '';
         $variables['associated_objects_array'][$pid]['note'] = $return;
-        $return = get_two_siblings_metaLabel("Contact", $simple_mods);
+        $return = $simple_mods ? get_two_siblings_metaLabel("Contact", $simple_mods) : '';
         $variables['associated_objects_array'][$pid]['contact'] = $return;
       }
       // Content Stats for collections level stuff
