@@ -62,7 +62,7 @@ function islandora_basic_collection_display_preprocess_islandora_basic_collectio
       else {
         $simple_mods = '';
       }
-      if (!in_array('islandora:collectionCModel', $variables['associated_objects_array'][$pid]['object']->models)) {
+      if (gettype($simple_mods) != 'string' && !in_array('islandora:collectionCModel', $variables['associated_objects_array'][$pid]['object']->models)) {
         // objects not collections.
         //Subjects
         $subjects = $simple_mods->xpath('//div[@class="metadataValue modsSubject"]/a');
