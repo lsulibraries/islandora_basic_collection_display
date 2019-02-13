@@ -41,11 +41,14 @@ function islandora_basic_collection_display_preprocess_islandora_basic_collectio
       $children =  islandora_compound_object_get_parts($object->id);
       foreach ($children as $child) {
         $ch_obj = islandora_object_load($child);
-        $sequence = $ch_obj->relationships->get('http://islandora.ca/ontology/relsext#', 'isSequenceNumberOf' . str_replace(':', '_', $pid));
-        if ($sequence['0']['object']['value'] == 1) {
-          $str = "src='/islandora/object/{$ch_obj->id}/datastream/JPG/view'";
-          $new_link =  preg_replace('/src="([^"]*)"/i', $str , $variables['associated_objects_array'][$pid]['thumb_link']);
-          $variables['associated_objects_array'][$pid]['thumb_link'] = $new_link;
+        $ch_models = $ch_obj->models;
+        if ( in_array('islandora:sp_large_image_cmodel', $ch_models)) { 
+          $sequence = $ch_obj->relationships->get('http://islandora.ca/ontology/relsext#', 'isSequenceNumberOf' . str_replace(':', '_', $pid));
+          if ($sequence['0']['object']['value'] == 1) {
+            $str = "src='/islandora/object/{$ch_obj->id}/datastream/JPG/view'";
+            $new_link =  preg_replace('/src="([^"]*)"/i', $str , $variables['associated_objects_array'][$pid]['thumb_link']);
+            $variables['associated_objects_array'][$pid]['thumb_link'] = $new_link;
+          }
         }
       }
     }
