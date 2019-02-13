@@ -5,6 +5,7 @@
  * Allows override of all templates in islandora_solution_pack_collection.
  */
 
+
 function get_two_siblings_metaLabel($elder, $simple_xml_mods){
   if (isset($simple_xml_mods)) {
     $xpath = $simple_xml_mods->xpath("//div[@class='metadataLabel' and text() = '$elder']");
@@ -21,6 +22,7 @@ function get_two_siblings_metaLabel($elder, $simple_xml_mods){
 }
 
 
+
 /**
  * Implements hook_preprocess_hook().
  * Adds/modifies variables for islandora-basic-collection-grid.tpl.php
@@ -32,8 +34,19 @@ function islandora_basic_collection_display_preprocess_islandora_basic_collectio
     // Add cmodels to object classes.
     $pid = $result['object']['value'];
     $object = islandora_object_load($pid);
-    $models = $object->models;
 
+    //For compound objects, guarentee first child is default thumbnail.
+    $models = $object->models;
+    if (in_array('islandora:compoundCModel' , $models)) {
+      $children =  islandora_compound_object_get_parts($object->id);
+      foreach ($children as $child) {
+        $ch_obj = islandora_object_load($child);
+        $sequence = $ch_obj->relationships->get('http://islandora.ca/ontology/relsext#', 'isSequenceNumberOf' . str_replace(':', '_', $object->id));
+        if ($sequence['0']['object']['value'] == 1) { 
+          $variables['thumb_link'] = url("islandora/object/{$ch_obj->id}/datastream/TN/view");
+        }
+      }
+    }
 
     // Unset FedoraObject model.
     $key = array_search('fedora-system:FedoraObject-3.0', $models);
