@@ -43,7 +43,7 @@ function islandora_basic_collection_display_preprocess_islandora_basic_collectio
         $ch_obj = islandora_object_load($child);
         $sequence = $ch_obj->relationships->get('http://islandora.ca/ontology/relsext#', 'isSequenceNumberOf' . str_replace(':', '_', $object->id));
         if ($sequence['0']['object']['value'] == 1) { 
-          $variables['thumb_link'] = url("islandora/object/{$ch_obj->id}/datastream/TN/view");
+          $variables['thumb_link'] = url("islandora/object/{$ch_obj->id}/datastream/JPG/view");
         }
       }
     }
