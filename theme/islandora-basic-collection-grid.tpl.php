@@ -27,13 +27,13 @@
     </div>
           <div class="loadingMessage"> <div class="lds-ring"><div></div><div></div><div></div><div></div></div> Loading </div>
 
-    
+
     <?php foreach ($variables['associated_objects_array'] as $object) : ?>
       <div class='islandora-basic-collection-object masonryItem <?php print $object['class']; ?>'>
 
 
         <div class='islandora-basic-collection-caption'> <?php print filter_xss($object['title_link']); ?> </div>
-        <div class='islandora-basic-collection-thumb'><?php print $object['thumb_link']; ?> </div>
+        <div class="islandora-basic-collection-thumb <?php print $object['TN_class'];?>"><?php print $object['thumb_link']; ?> </div>
         <div class='islandora-basic-collection-meta'>
         <!-- regular object not collection  -->
             <!-- where are my ranged dates?  -->
