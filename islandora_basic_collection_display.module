@@ -35,121 +35,125 @@ function islandora_basic_collection_display_preprocess_islandora_basic_collectio
     $pid = $result['object']['value'];
     $object = islandora_object_load($pid);
 
-    //For compound objects, guarentee first child is default thumbnail.
-    $models = $object->models;
-    if (in_array('islandora:compoundCModel' , $models)) {
-      $children =  islandora_compound_object_get_parts($object->id);
-      foreach ($children as $child) {
-        $ch_obj = islandora_object_load($child);
-        $ch_models = $ch_obj->models;
-        if ( in_array('islandora:sp_large_image_cmodel', $ch_models)) { 
-          $sequence = $ch_obj->relationships->get('http://islandora.ca/ontology/relsext#', 'isSequenceNumberOf' . str_replace(':', '_', $pid));
-          if ($sequence['0']['object']['value'] == 1) {
-            $jpg_exists = isset($ch_obj['JPG']);
-            $str = $jpg_exists != ''  ? "src='/islandora/object/{$ch_obj->id}/datastream/JPG/view'" : "src='/islandora/object/{$ch_obj->id}/datastream/TN/view'";
-            $new_link =  preg_replace('/src="([^"]*)"/i', $str , $variables['associated_objects_array'][$pid]['thumb_link']);
-            $variables['associated_objects_array'][$pid]['thumb_link'] = $new_link;
+    if($object) {
+      //For compound objects, guarentee first child is default thumbnail.
+      $models = $object->models;
+      if (in_array('islandora:compoundCModel' , $models)) {
+        $children =  islandora_compound_object_get_parts($object->id);
+        foreach ($children as $child) {
+          $ch_obj = islandora_object_load($child);
+          $ch_models = $ch_obj->models;
+          if ( in_array('islandora:sp_large_image_cmodel', $ch_models)) { 
+            $sequence = $ch_obj->relationships->get('http://islandora.ca/ontology/relsext#', 'isSequenceNumberOf' . str_replace(':', '_', $pid));
+            if ($sequence['0']['object']['value'] == 1) {
+              $jpg_exists = isset($ch_obj['JPG']);
+              $str = $jpg_exists != ''  ? "src='/islandora/object/{$ch_obj->id}/datastream/JPG/view'" : "src='/islandora/object/{$ch_obj->id}/datastream/TN/view'";
+              $new_link =  preg_replace('/src="([^"]*)"/i', $str , $variables['associated_objects_array'][$pid]['thumb_link']);
+              $variables['associated_objects_array'][$pid]['thumb_link'] = $new_link;
+            }
           }
         }
       }
     }
-    // Unset FedoraObject model.
-    $key = array_search('fedora-system:FedoraObject-3.0', $models);
-    unset($models[$key]);
-    // Don't override original classes.
-    $original_class = $variables['associated_objects_array'][$pid]['class'];
-    $models[] = $original_class;
-    $variables['associated_objects_array'][$pid]['class'] = implode(' ', $models);
-    //set all new variables to empty string by default
-    $variables['associated_objects_array'][$pid]['stats'][''] = '';
-    $variables['associated_objects_array'][$pid]['subjects'][''] = '';
-    $variables['associated_objects_array'][$pid]['date_created'] = '';
-    $variables['associated_objects_array'][$pid]['description'] = '';
-    $variables['associated_objects_array'][$pid]['creator'][''] = '';
-    $variables['associated_objects_array'][$pid]['contact'] = '';
-    $variables['associated_objects_array'][$pid]['note'] = '';
+    if($object){
+      // Unset FedoraObject model.
+      $key = array_search('fedora-system:FedoraObject-3.0', $models);
+      unset($models[$key]);
+      // Don't override original classes.
+      $original_class = $variables['associated_objects_array'][$pid]['class'];
+      $models[] = $original_class;
+      $variables['associated_objects_array'][$pid]['class'] = implode(' ', $models);
+      //set all new variables to empty string by default
+      $variables['associated_objects_array'][$pid]['stats'][''] = '';
+      $variables['associated_objects_array'][$pid]['subjects'][''] = '';
+      $variables['associated_objects_array'][$pid]['date_created'] = '';
+      $variables['associated_objects_array'][$pid]['description'] = '';
+      $variables['associated_objects_array'][$pid]['creator'][''] = '';
+      $variables['associated_objects_array'][$pid]['contact'] = '';
+      $variables['associated_objects_array'][$pid]['note'] = '';
 
-    if (isset($object['MODS'])) { 
-      module_load_include('module', 'islandora_mods_display');
-      $mods_markup = islandora_mods_display_display_callback($variables['associated_objects_array'][$pid]['object']);
-      $dom = new DomDocument();
-      if (isset($mods_markup) && strlen($mods_markup) > 1) { 
-        $dom->loadHTML($mods_markup);
-        $simple_mods = simplexml_import_dom($dom);
-      }
-      else {
-        $simple_mods = '';
-      }
-      if (gettype($simple_mods) != 'string' && !in_array('islandora:collectionCModel', $variables['associated_objects_array'][$pid]['object']->models)) {
-        // objects not collections.
-        //Subjects
-        $subjects = $simple_mods->xpath('//div[@class="metadataValue modsSubject"]/a');
-        $return = array();
-        foreach($subjects as $sub) {
-          $return[] = $sub->asXML() ."\n";
+      if (isset($object['MODS'])) { 
+        module_load_include('module', 'islandora_mods_display');
+        $mods_markup = islandora_mods_display_display_callback($variables['associated_objects_array'][$pid]['object']);
+        $dom = new DomDocument();
+        if (isset($mods_markup) && strlen($mods_markup) > 1) { 
+          $dom->loadHTML($mods_markup);
+          $simple_mods = simplexml_import_dom($dom);
         }
-        $variables['associated_objects_array'][$pid]['subjects'] = $return;
-
-        //Date
-        $return = get_two_siblings_metaLabel("Date Created", $simple_mods);
-        $variables['associated_objects_array'][$pid]['date_created'] = $return;
-
-        //abstract
-        $return = get_two_siblings_metaLabel("Description", $simple_mods);
-        $variables['associated_objects_array'][$pid]['description'] = $return;
-
-        //Creator
-        $return = get_two_siblings_metaLabel("Creator", $simple_mods);
-        $variables['associated_objects_array'][$pid]['creator'][] = $return;
-      }
-      else {
-        //it is a collection
-        $return = $simple_mods ? get_two_siblings_metaLabel("Abstract", $simple_mods): '';
-        $variables['associated_objects_array'][$pid]['description'] = $return;
-        $return = $simple_mods ? get_two_siblings_metaLabel("Note", $simple_mods) : '';
-        $variables['associated_objects_array'][$pid]['note'] = $return;
-        $return = $simple_mods ? get_two_siblings_metaLabel("Contact", $simple_mods) : '';
-        $variables['associated_objects_array'][$pid]['contact'] = $return;
-      }
-      // Content Stats for collections level stuff
-      if (module_exists('islandora_content_stats')) {
-
-        module_load_include('inc', 'islandora_content_stats', 'includes/utilities');
-        $last_run = latest_run();
-        $stats = db_query("SELECT * from {islandora_content_stats} where coll = :pid and timestamp = :timestamp ", array(':pid' => $pid, ':timestamp' => $last_run));
-        $results = $stats->fetchAll();
-        $more_than_one = $stats->rowCount() > 1;
-        $none_set = $stats->rowCount() == 0;
-
-
-        // show the stats breakdown. //still needed here bc not all collections have mods
-        if (in_array('islandora:collectionCModel', $variables['associated_objects_array'][$pid]['object']->models)) {
-          if($none_set){
-            $variables['associated_objects_array'][$pid]['stats'][''] = '';
+        else {
+          $simple_mods = '';
+        }
+        if (gettype($simple_mods) != 'string' && !in_array('islandora:collectionCModel', $variables['associated_objects_array'][$pid]['object']->models)) {
+          // objects not collections.
+          //Subjects
+          $subjects = $simple_mods->xpath('//div[@class="metadataValue modsSubject"]/a');
+          $return = array();
+          foreach($subjects as $sub) {
+            $return[] = $sub->asXML() ."\n";
           }
-          else{
-            $total = 0;
-            foreach($results as $stat) {
+          $variables['associated_objects_array'][$pid]['subjects'] = $return;
 
-              // more than one model exist per collection, provide the item count per model
-              if($more_than_one){
-                $variables['associated_objects_array'][$pid]['stats'][map_cmodels($stat->cmodel) . ':'] = $stat->count;
+          //Date
+          $return = get_two_siblings_metaLabel("Date Created", $simple_mods);
+          $variables['associated_objects_array'][$pid]['date_created'] = $return;
+
+          //abstract
+          $return = get_two_siblings_metaLabel("Description", $simple_mods);
+          $variables['associated_objects_array'][$pid]['description'] = $return;
+
+          //Creator
+          $return = get_two_siblings_metaLabel("Creator", $simple_mods);
+          $variables['associated_objects_array'][$pid]['creator'][] = $return;
+        }
+        else {
+          //it is a collection
+          $return = $simple_mods ? get_two_siblings_metaLabel("Abstract", $simple_mods): '';
+          $variables['associated_objects_array'][$pid]['description'] = $return;
+          $return = $simple_mods ? get_two_siblings_metaLabel("Note", $simple_mods) : '';
+          $variables['associated_objects_array'][$pid]['note'] = $return;
+          $return = $simple_mods ? get_two_siblings_metaLabel("Contact", $simple_mods) : '';
+          $variables['associated_objects_array'][$pid]['contact'] = $return;
+        }
+        // Content Stats for collections level stuff
+        if (module_exists('islandora_content_stats')) {
+
+          module_load_include('inc', 'islandora_content_stats', 'includes/utilities');
+          $last_run = latest_run();
+          $stats = db_query("SELECT * from {islandora_content_stats} where coll = :pid and timestamp = :timestamp ", array(':pid' => $pid, ':timestamp' => $last_run));
+          $results = $stats->fetchAll();
+          $more_than_one = $stats->rowCount() > 1;
+          $none_set = $stats->rowCount() == 0;
+
+
+          // show the stats breakdown. //still needed here bc not all collections have mods
+          if (in_array('islandora:collectionCModel', $variables['associated_objects_array'][$pid]['object']->models)) {
+            if($none_set){
+              $variables['associated_objects_array'][$pid]['stats'][''] = '';
+            }
+            else{
+              $total = 0;
+              foreach($results as $stat) {
+
+                // more than one model exist per collection, provide the item count per model
+                if($more_than_one){
+                  $variables['associated_objects_array'][$pid]['stats'][map_cmodels($stat->cmodel) . ':'] = $stat->count;
+                }
+                $total += $stat->count;
               }
-              $total += $stat->count;
-            }
-            $variables['associated_objects_array'][$pid]['stats']['Total items'] = $total;
-            // placehoders for development
-            if(count($variables['associated_objects_array'][$pid]['stats']) <= 1){
-              $variables['associated_objects_array'][$pid]['stats']['Total items'] = '247';
-              $variables['associated_objects_array'][$pid]['stats']['PLACEHODLER_images'] = '20';
-              $variables['associated_objects_array'][$pid]['stats']['PLACEHODLER_pdf'] = '7';
-              $variables['associated_objects_array'][$pid]['stats']['PLACEHODLER_compound'] = '220';
+              $variables['associated_objects_array'][$pid]['stats']['Total items'] = $total;
+              // placehoders for development
+              if(count($variables['associated_objects_array'][$pid]['stats']) <= 1){
+                $variables['associated_objects_array'][$pid]['stats']['Total items'] = '247';
+                $variables['associated_objects_array'][$pid]['stats']['PLACEHODLER_images'] = '20';
+                $variables['associated_objects_array'][$pid]['stats']['PLACEHODLER_pdf'] = '7';
+                $variables['associated_objects_array'][$pid]['stats']['PLACEHODLER_compound'] = '220';
+              }
             }
           }
         }
-      }
-      else {
-        $variables['associated_objects_array'][$pid]['stats'][''] = '';
+        else {
+          $variables['associated_objects_array'][$pid]['stats'][''] = '';
+        }
       }
     }
   }
