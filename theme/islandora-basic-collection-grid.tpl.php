@@ -37,12 +37,12 @@
         <div class='islandora-basic-collection-meta'>
         <!-- regular object not collection  -->
             <!-- where are my ranged dates?  -->
-              <div class='islandora-basic-object-date_created'> <?php print $object['date_created'] ?></div>
+              <div class='islandora-basic-object-date_created'> <?php print ($object['date_created'] == '<dateCreated/>' || "<div class='metadataValue'/>" ? '' : $object['date_created']) ?></div>
             <?php foreach ($object['subjects'] as $key => $sub) :?>
-              <div class='islandora-basic-object-<?php print $key; print ' modsSubject' ?>'> <?php print $sub; ?> </div>
+              <div class='islandora-basic-object-<?php print $key; print " modsSubject" ?>'> <?php print $sub ?> </div> -->
             <?php endforeach; ?>
             <?php foreach ($object['creator'] as $key => $value) : ?>
-              <div class='islandora-basic-collection-creator'> <?php print $value; ?></div>
+              <div class='islandora-basic-collection-creator'> <?php print $value; ?></div>-->
             <?php endforeach; ?>
 
 
@@ -55,9 +55,9 @@
             <div class='islandora-basic-object-abstract'> <?php print $object['description']; ?> </div>
             <div class='islandora-basic-object-note'> <?php print $object['note']; ?> </div>
             <div class='islandora-basic-object-contact'> <?php print $object['contact']; ?> </div>
-        </div>
-        <div class="itemHover"><div class="dateHover"><?php print $object['date_created']; ?></div><div class="typeHover"></div></div>
 
+        </div>
+        <div class="itemHover"><div class="dateHover"><?php print ($object['date_created'] == '<dateCreated/>' || "<div class='metadataValue'/>" ? '' : $object['date_created']); ?></div><div class="typeHover"></div></div>
       </div>
     <?php endforeach; ?>
 </div>
